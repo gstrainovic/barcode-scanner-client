@@ -1,8 +1,6 @@
 use crate::devices::{DeviceInfo, Devices, JoystickInfo, JoystickState, KeyboardInfo, MouseInfo};
 use crate::event::RawEvent;
-use crate::joystick::{garbage_vec, process_joystick_data};
 use crate::keyboard::process_keyboard_data;
-use crate::mouse::process_mouse_data;
 use std::collections::VecDeque;
 use std::ffi::OsStr;
 use std::ffi::OsString;
@@ -77,18 +75,8 @@ fn read_input_buffer(event_queue: &mut VecDeque<RawEvent>, devices: &mut Devices
                 None => continue,
             };
             match raw_input.header.dwType {
-                RIM_TYPEMOUSE => {
-                    event_queue.extend(process_mouse_data(&raw_input.data.mouse(), pos));
-                }
                 RIM_TYPEKEYBOARD => {
                     event_queue.extend(process_keyboard_data(&raw_input.data.keyboard(), pos));
-                }
-                RIM_TYPEHID => {
-                    event_queue.extend(process_joystick_data(
-                        &raw_input.data.hid(),
-                        pos,
-                        &mut devices.joysticks[pos],
-                    ));
                 }
                 _ => (),
             }
@@ -278,6 +266,13 @@ pub unsafe fn get_device_info(
                     &mut preparsed_data_size
                 ) == 0
             );
+
+            pub unsafe fn garbage_vec<T>(size: usize) -> Vec<T> {
+                let mut v = Vec::with_capacity(size);
+                v.set_len(size);
+                v
+            }
+
             let mut preparsed_data: Vec<u8> = garbage_vec(preparsed_data_size as usize);
             assert!(
                 GetRawInputDeviceInfoW(

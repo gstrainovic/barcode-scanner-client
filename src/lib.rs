@@ -31,10 +31,8 @@ extern crate winapi;
 
 pub mod devices;
 pub mod event;
-mod joystick;
 mod keyboard;
 pub mod manager;
-mod mouse;
 mod rawinput;
 mod registrar;
 

@@ -26,7 +26,7 @@ fn my_window() {
 
 fn main() {
     // run my_window non blocking
-    std::thread::spawn(|| {
+    let my_window_handle = std::thread::spawn(|| {
         my_window();
     });
 
@@ -47,11 +47,14 @@ fn main() {
     };
 
 
-    loop {
+    while !my_window_handle.is_finished() {
+        
+    } {
+
         if let Some(event) = manager.get_event() {
             // get HWND from window with the title 2
             let my_windows_hwnd = unsafe { winapi::um::winuser::FindWindowA(std::ptr::null(), "r2\0".as_ptr() as *const i8) };
-
+            
             let current_active_window_hwnd = unsafe {
                 winapi::um::winuser::GetForegroundWindow()
             };
@@ -67,7 +70,6 @@ fn main() {
             }
 
             match event {
-
               // RawEvent::KeyboardEvent(_, KeyId::One , State::Pressed) => { chars.push('1'); }
               // RawEvent::KeyboardEvent(_, KeyId::Two , State::Pressed) => { chars.push('2'); }
               // RawEvent::KeyboardEvent(_, KeyId::Three , State::Pressed) => { chars.push('3'); }
@@ -154,6 +156,7 @@ fn main() {
             std::thread::sleep(std::time::Duration::from_millis(10));
         }
       }
+    
     }
 
     

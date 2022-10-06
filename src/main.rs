@@ -1,36 +1,30 @@
+use std::sync::Arc;
+
 use flt_rust_demo::{RawInputManager, DeviceType, RawEvent, KeyId, State};
 // use flt_rust_demo::*;
 use fltk::{prelude::*, *};
 use fltk_theme::{widget_themes, WidgetTheme, ThemeType};
-use keymap::KeyMap;
 
-fn my_window()  {
+fn my_window() {
     let a = app::App::default();
-    let widget_theme = WidgetTheme::new(ThemeType::Dark);
-    widget_theme.apply();
     let mut win = window::Window::default().with_size(400, 300);
     win.set_label("r2");
-    let mut btn = button::Button::new(160, 200, 80, 30, "Hello");
-    btn.set_frame(widget_themes::OS_DEFAULT_BUTTON_UP_BOX);
 
-    // input
-    let mut inp = input::Input::new(160, 100, 80, 30, "Input");
+    // switch theme to dark
+    let theme = WidgetTheme::new(ThemeType::Dark);
+    theme.apply();
 
-    // set focus on input
-    inp.take_focus();
+    let mut inp = input::Input::default()
+        .with_size(160, 30)
+        .center_of_parent();
+    inp.set_trigger(enums::CallbackTrigger::EnterKey);
+    inp.set_callback(|i| println!("hello {}", i.value()));
 
     win.end();
     win.show();
-    a.run().unwrap();
-}
-
+    a.run().unwrap();}
 
 fn main() {
-    // get all characters from rawinput and print them
-
-  
-    let current_active_window_hwnd = unsafe { winapi::um::winuser::GetForegroundWindow() };
-
     // run my_window non blocking
     std::thread::spawn(|| {
         my_window();
@@ -48,14 +42,24 @@ fn main() {
     println!("{:?}", devices);
 
     // list of characters
-    let mut chars: Vec<char> = Vec::new();
+    let mut switch_back_hwd = unsafe {
+        winapi::um::winuser::GetForegroundWindow()
+    };
 
 
-    'outer: loop {
-        let my_string = manager.get_events();
-        println!("{:?}", my_string);
+    loop {
         if let Some(event) = manager.get_event() {
-            // get current active window with winapi
+            // get HWND from window with the title 2
+            let my_windows_hwnd = unsafe { winapi::um::winuser::FindWindowA(std::ptr::null(), "r2\0".as_ptr() as *const i8) };
+
+            let current_active_window_hwnd = unsafe {
+                winapi::um::winuser::GetForegroundWindow()
+            };
+
+            if current_active_window_hwnd != my_windows_hwnd {
+                switch_back_hwd = current_active_window_hwnd;
+            }
+
 
             // activate the window with the title "r2"
             unsafe {
@@ -64,10 +68,6 @@ fn main() {
 
             match event {
 
-              RawEvent::KeyboardEvent(key_code) => { 
-                let a = KeyMap::from(KeyMappingId::UsA);
-                chars.push(a);
-               }
               // RawEvent::KeyboardEvent(_, KeyId::One , State::Pressed) => { chars.push('1'); }
               // RawEvent::KeyboardEvent(_, KeyId::Two , State::Pressed) => { chars.push('2'); }
               // RawEvent::KeyboardEvent(_, KeyId::Three , State::Pressed) => { chars.push('3'); }
@@ -77,6 +77,7 @@ fn main() {
               // RawEvent::KeyboardEvent(_, KeyId::Seven , State::Pressed) => { chars.push('7'); }
               // RawEvent::KeyboardEvent(_, KeyId::Eight , State::Pressed) => { chars.push('8'); }
               // RawEvent::KeyboardEvent(_, KeyId::Nine , State::Pressed) => { chars.push('9'); }
+              
               // RawEvent::KeyboardEvent(_, KeyId::A , State::Pressed) => { chars.push('a'); }
               // RawEvent::KeyboardEvent(_, KeyId::B , State::Pressed) => { chars.push('b'); }
               // RawEvent::KeyboardEvent(_, KeyId::C , State::Pressed) => { chars.push('c'); }
@@ -119,8 +120,30 @@ fn main() {
               // RawEvent::KeyboardEvent(_, KeyId::LeftSquareBracket , State::Pressed) => { chars.push('['); }
               // RawEvent::KeyboardEvent(_, KeyId::RightSquareBracket , State::Pressed) => { chars.push(']'); }
               // RawEvent::KeyboardEvent(_, KeyId::SemiColon , State::Pressed) => { chars.push(';'); }
-              // RawEvent::KeyboardEvent(_, KeyId:: , State::Pressed) => { chars.push('\''); }
-              // RawEvent::KeyboardEvent(_, KeyId::Return , State::Pressed) => { break 'outer; }
+              // RawEvent::KeyboardEvent(_, KeyId::Apostrophe, State::Pressed) => { chars.push('\''); }
+              RawEvent::KeyboardEvent(_, KeyId::Return , State::Released) => { 
+
+                  // // string from chars
+                  // let mut string = String::new();
+                  // for c in chars.iter() {
+                  //     string.push(*c);
+                  // }
+
+                  // // print string
+                  // println!("{}", string);
+
+                  // // clear chars and string
+                  // chars.clear();
+                  // string.clear();
+
+                  // activate the window current_active_window_hwnd again
+                  unsafe {
+                      winapi::um::winuser::SetForegroundWindow(switch_back_hwd);
+                  }
+
+                  // clear current_active_window_hwnd
+
+               }
               
 
               _ => {}
@@ -128,19 +151,9 @@ fn main() {
             }
 
         } else {
-
             std::thread::sleep(std::time::Duration::from_millis(10));
         }
+      }
     }
-    println!("Finishing");
 
-    // string from chars
-    let mut string = String::new();
-    for c in chars {
-        string.push(c);
-    }
-    println!("String: {}", string);
-
-}
-
-
+    

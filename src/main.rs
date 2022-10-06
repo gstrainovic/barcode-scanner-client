@@ -1,11 +1,130 @@
-use std::sync::Arc;
-
-use flt_rust_demo::{RawInputManager, DeviceType, RawEvent, KeyId, State};
-// use flt_rust_demo::*;
+use flt_rust_demo::{DeviceType, KeyId, RawEvent, RawInputManager, State};
 use fltk::{prelude::*, *};
-use fltk_theme::{widget_themes, WidgetTheme, ThemeType};
+use fltk_theme::{ThemeType, WidgetTheme};
+use fltk::{app, enums::FrameType};
+use notify_rust::Notification;
 
-fn my_window() {
+#[cfg(target_os = "windows")]
+mod systray;
+
+type HWND = *mut std::os::raw::c_void;
+pub static mut WINDOW: HWND = std::ptr::null_mut();
+
+fn main() {
+    let a = app::App::default().with_scheme(app::Scheme::Gtk);
+    let mut win = window::Window::default().with_size(640, 480);
+    let mut col = group::Flex::default_fill().column();
+    main_panel(&mut col);
+    col.end();
+    win.resizable(&col);
+    win.set_color(enums::Color::from_rgb(250, 250, 250));
+    win.end();
+    win.show();
+    win.size_range(600, 400, 0, 0);
+    a.run().unwrap();
+}
+
+fn buttons_panel(parent: &mut group::Flex) {
+    frame::Frame::default();
+    let w = frame::Frame::default().with_label("Welcome to Flex Login");
+
+    let mut urow = group::Flex::default().row();
+    {
+        frame::Frame::default()
+            .with_label("Username:")
+            .with_align(enums::Align::Inside | enums::Align::Right);
+        let username = input::Input::default();
+
+        urow.set_size(&username, 180);
+        urow.end();
+    }
+
+    let mut prow = group::Flex::default().row();
+    {
+        frame::Frame::default()
+            .with_label("Password:")
+            .with_align(enums::Align::Inside | enums::Align::Right);
+        let password = input::Input::default();
+
+        prow.set_size(&password, 180);
+        prow.end();
+    }
+
+    let pad = frame::Frame::default();
+
+    let mut brow = group::Flex::default().row();
+    {
+        frame::Frame::default();
+        let reg = create_button("Register");
+        let login = create_button("Login");
+
+        brow.set_size(&reg, 80);
+        brow.set_size(&login, 80);
+        brow.end();
+    }
+
+    let b = frame::Frame::default();
+
+    frame::Frame::default();
+
+    parent.set_size(&w, 60);
+    parent.set_size(&urow, 30);
+    parent.set_size(&prow, 30);
+    parent.set_size(&pad, 1);
+    parent.set_size(&brow, 30);
+    parent.set_size(&b, 30);
+}
+
+fn middle_panel(parent: &mut group::Flex) {
+    frame::Frame::default();
+
+    let mut frame = frame::Frame::default().with_label("Image");
+    frame.set_frame(enums::FrameType::BorderBox);
+    frame.set_color(enums::Color::from_rgb(0, 200, 0));
+    let spacer = frame::Frame::default();
+
+    let mut bp = group::Flex::default().column();
+    buttons_panel(&mut bp);
+    bp.end();
+
+    frame::Frame::default();
+
+    parent.set_size(&frame, 200);
+    parent.set_size(&spacer, 10);
+    parent.set_size(&bp, 300);
+}
+
+fn main_panel(parent: &mut group::Flex) {
+    frame::Frame::default();
+
+    let mut mp = group::Flex::default().row();
+    middle_panel(&mut mp);
+    mp.end();
+
+    frame::Frame::default();
+
+    parent.set_size(&mp, 200);
+}
+
+fn create_button(caption: &str) -> button::Button {
+    let mut btn = button::Button::default().with_label(caption);
+    btn.set_color(enums::Color::from_rgb(225, 225, 225));
+    btn
+}
+
+
+fn process_barcode(barcode: &str) {
+    println!("Barcode: {}", barcode);
+    let mut notif = Notification::new();
+    notif.summary("Barcode");
+    notif.body(&barcode);
+    notif.show().unwrap();
+}
+
+fn mo() {
+
+    hide_console_window();
+
     let a = app::App::default();
     let mut win = window::Window::default().with_size(400, 300);
     win.set_label("r2");
@@ -18,17 +137,44 @@ fn my_window() {
         .with_size(160, 30)
         .center_of_parent();
     inp.set_trigger(enums::CallbackTrigger::EnterKey);
-    inp.set_callback(|i| println!("hello {}", i.value()));
+    inp.set_callback(|i| process_barcode(&i.value()));
 
     win.end();
     win.show();
-    a.run().unwrap();}
-
-fn main() {
-    // run my_window non blocking
-    let my_window_handle = std::thread::spawn(|| {
-        my_window();
+    
+    // do you really want do close the window?
+    win.set_callback(|w| {
+        let choice = dialog::choice2_default("Barcodescanner beenden?", "Nein", "Ja", "Abbruch");
+        println!("{:?}", choice);
+        if choice == Some(1) {
+              let mut notif = Notification::new();
+              notif.summary("Barcodescanner beendet");
+              notif.show().unwrap();
+            w.hide();
+        }
     });
+
+    let my_looper_handle = std::thread::spawn(|| looper());
+
+    a.run().unwrap();
+}
+
+fn hide_console_window() {
+    use std::ptr;
+    use winapi::um::wincon::GetConsoleWindow;
+    use winapi::um::winuser::{ShowWindow, SW_HIDE};
+
+    let window = unsafe {GetConsoleWindow()};
+    // https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-showwindow
+    if window != ptr::null_mut() {
+        unsafe {
+            ShowWindow(window, SW_HIDE);
+        }
+    }
+}
+
+
+fn looper() {
 
     let mut manager = RawInputManager::new().unwrap();
     manager.register_devices(DeviceType::Keyboards);
@@ -42,121 +188,42 @@ fn main() {
     println!("{:?}", devices);
 
     // list of characters
-    let mut switch_back_hwd = unsafe {
-        winapi::um::winuser::GetForegroundWindow()
-    };
+    let mut switch_back_hwd = unsafe { winapi::um::winuser::GetForegroundWindow() };
 
-
-    while !my_window_handle.is_finished() {
-        
-    } {
-
+    loop {
+        // handle events
         if let Some(event) = manager.get_event() {
             // get HWND from window with the title 2
-            let my_windows_hwnd = unsafe { winapi::um::winuser::FindWindowA(std::ptr::null(), "r2\0".as_ptr() as *const i8) };
-            
-            let current_active_window_hwnd = unsafe {
-                winapi::um::winuser::GetForegroundWindow()
+            let my_windows_hwnd = unsafe {
+                winapi::um::winuser::FindWindowA(std::ptr::null(), "r2\0".as_ptr() as *const i8)
             };
+
+            let current_active_window_hwnd = unsafe { winapi::um::winuser::GetForegroundWindow() };
 
             if current_active_window_hwnd != my_windows_hwnd {
                 switch_back_hwd = current_active_window_hwnd;
             }
 
-
             // activate the window with the title "r2"
             unsafe {
-                winapi::um::winuser::SetForegroundWindow(winapi::um::winuser::FindWindowA(std::ptr::null(), "r2\0".as_ptr() as *const i8));
+                winapi::um::winuser::SetForegroundWindow(winapi::um::winuser::FindWindowA(
+                    std::ptr::null(),
+                    "r2\0".as_ptr() as *const i8,
+                ));
             }
 
             match event {
-              // RawEvent::KeyboardEvent(_, KeyId::One , State::Pressed) => { chars.push('1'); }
-              // RawEvent::KeyboardEvent(_, KeyId::Two , State::Pressed) => { chars.push('2'); }
-              // RawEvent::KeyboardEvent(_, KeyId::Three , State::Pressed) => { chars.push('3'); }
-              // RawEvent::KeyboardEvent(_, KeyId::Four , State::Pressed) => { chars.push('4'); }
-              // RawEvent::KeyboardEvent(_, KeyId::Five , State::Pressed) => { chars.push('5'); }
-              // RawEvent::KeyboardEvent(_, KeyId::Six , State::Pressed) => { chars.push('6'); }
-              // RawEvent::KeyboardEvent(_, KeyId::Seven , State::Pressed) => { chars.push('7'); }
-              // RawEvent::KeyboardEvent(_, KeyId::Eight , State::Pressed) => { chars.push('8'); }
-              // RawEvent::KeyboardEvent(_, KeyId::Nine , State::Pressed) => { chars.push('9'); }
-              
-              // RawEvent::KeyboardEvent(_, KeyId::A , State::Pressed) => { chars.push('a'); }
-              // RawEvent::KeyboardEvent(_, KeyId::B , State::Pressed) => { chars.push('b'); }
-              // RawEvent::KeyboardEvent(_, KeyId::C , State::Pressed) => { chars.push('c'); }
-              // RawEvent::KeyboardEvent(_, KeyId::D , State::Pressed) => { chars.push('d'); }
-              // RawEvent::KeyboardEvent(_, KeyId::E , State::Pressed) => { chars.push('e'); }
-              // RawEvent::KeyboardEvent(_, KeyId::F , State::Pressed) => { chars.push('f'); }
-              // RawEvent::KeyboardEvent(_, KeyId::G , State::Pressed) => { chars.push('g'); }
-              // RawEvent::KeyboardEvent(_, KeyId::H , State::Pressed) => { chars.push('h'); }
-              // RawEvent::KeyboardEvent(_, KeyId::I , State::Pressed) => { chars.push('i'); }
-              // RawEvent::KeyboardEvent(_, KeyId::J , State::Pressed) => { chars.push('j'); }
-              // RawEvent::KeyboardEvent(_, KeyId::K , State::Pressed) => { chars.push('k'); }
-              // RawEvent::KeyboardEvent(_, KeyId::L , State::Pressed) => { chars.push('l'); }
-              // RawEvent::KeyboardEvent(_, KeyId::M , State::Pressed) => { chars.push('m'); }
-              // RawEvent::KeyboardEvent(_, KeyId::N , State::Pressed) => { chars.push('n'); }
-              // RawEvent::KeyboardEvent(_, KeyId::O , State::Pressed) => { chars.push('o'); }
-              // RawEvent::KeyboardEvent(_, KeyId::P , State::Pressed) => { chars.push('p'); }
-              // RawEvent::KeyboardEvent(_, KeyId::Q , State::Pressed) => { chars.push('q'); }
-              // RawEvent::KeyboardEvent(_, KeyId::R , State::Pressed) => { chars.push('r'); }
-              // RawEvent::KeyboardEvent(_, KeyId::S , State::Pressed) => { chars.push('s'); }
-              // RawEvent::KeyboardEvent(_, KeyId::T , State::Pressed) => { chars.push('t'); }
-              // RawEvent::KeyboardEvent(_, KeyId::U , State::Pressed) => { chars.push('u'); }
-              // RawEvent::KeyboardEvent(_, KeyId::V , State::Pressed) => { chars.push('v'); }
-              // RawEvent::KeyboardEvent(_, KeyId::W , State::Pressed) => { chars.push('w'); }
-              // RawEvent::KeyboardEvent(_, KeyId::X , State::Pressed) => { chars.push('x'); }
-              // RawEvent::KeyboardEvent(_, KeyId::Y , State::Pressed) => { chars.push('y'); }
-              // RawEvent::KeyboardEvent(_, KeyId::Z , State::Pressed) => { chars.push('z'); }
-              
-              // RawEvent::KeyboardEvent(_, KeyId::Space , State::Pressed) => { chars.push(' '); }
-              // RawEvent::KeyboardEvent(_, KeyId::Subtract , State::Pressed) => { chars.push('-'); }
-              // RawEvent::KeyboardEvent(_, KeyId::Multiply , State::Pressed) => { chars.push('*'); }
-              // RawEvent::KeyboardEvent(_, KeyId::Separator , State::Pressed) => { chars.push(','); }
-              // RawEvent::KeyboardEvent(_, KeyId::Decimal , State::Pressed) => { chars.push('.'); }
-              // RawEvent::KeyboardEvent(_, KeyId::Divide , State::Pressed) => { chars.push('/'); }
-              // RawEvent::KeyboardEvent(_, KeyId::BackTick , State::Pressed) => { chars.push('`'); }
-              // RawEvent::KeyboardEvent(_, KeyId::BackSlash , State::Pressed) => { chars.push('\\'); }
-              // RawEvent::KeyboardEvent(_, KeyId::ForwardSlash , State::Pressed) => { chars.push('/'); }
-              // RawEvent::KeyboardEvent(_, KeyId::Plus , State::Pressed) => { chars.push('+'); }
-              // RawEvent::KeyboardEvent(_, KeyId::Minus , State::Pressed) => { chars.push('-'); }
-              // RawEvent::KeyboardEvent(_, KeyId::Comma , State::Pressed) => { chars.push(','); }
-              // RawEvent::KeyboardEvent(_, KeyId::LeftSquareBracket , State::Pressed) => { chars.push('['); }
-              // RawEvent::KeyboardEvent(_, KeyId::RightSquareBracket , State::Pressed) => { chars.push(']'); }
-              // RawEvent::KeyboardEvent(_, KeyId::SemiColon , State::Pressed) => { chars.push(';'); }
-              // RawEvent::KeyboardEvent(_, KeyId::Apostrophe, State::Pressed) => { chars.push('\''); }
-              RawEvent::KeyboardEvent(_, KeyId::Return , State::Released) => { 
+                RawEvent::KeyboardEvent(_, KeyId::Return, State::Released) => {
+                    // activate the window current_active_window_hwnd again
+                    unsafe {
+                        winapi::um::winuser::SetForegroundWindow(switch_back_hwd);
+                    }
+                }
 
-                  // // string from chars
-                  // let mut string = String::new();
-                  // for c in chars.iter() {
-                  //     string.push(*c);
-                  // }
-
-                  // // print string
-                  // println!("{}", string);
-
-                  // // clear chars and string
-                  // chars.clear();
-                  // string.clear();
-
-                  // activate the window current_active_window_hwnd again
-                  unsafe {
-                      winapi::um::winuser::SetForegroundWindow(switch_back_hwd);
-                  }
-
-                  // clear current_active_window_hwnd
-
-               }
-              
-
-              _ => {}
-
+                _ => {}
             }
-
         } else {
             std::thread::sleep(std::time::Duration::from_millis(10));
         }
-      }
-    
     }
-
-    
+}

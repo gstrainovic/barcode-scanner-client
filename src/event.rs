@@ -129,6 +129,6 @@ pub enum Axis {
 /// Keyboard press events repeat when a key is held down.
 #[derive(Clone, Debug)]
 pub enum RawEvent {
-    KeyboardEvent(u32),
+    KeyboardEvent(usize, KeyId, State),
 }
 

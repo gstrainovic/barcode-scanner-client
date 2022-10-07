@@ -1,13 +1,9 @@
 use flt_rust_demo::{DeviceType, KeyId, RawEvent, RawInputManager, State};
 use fltk::{prelude::*, *};
-use fltk_theme::{ThemeType, WidgetTheme, ColorTheme, color_themes};
-use fltk::{app, enums::FrameType};
+use fltk_theme::{ThemeType, WidgetTheme};
+use fltk::{app};
 use notify_rust::Notification;
-use winput::{Vk, Action};
-use winput::message_loop;
-
-#[cfg(target_os = "windows")]
-mod systray;
+// use std::collections::HashMap;
 
 type HWND = *mut std::os::raw::c_void;
 pub static mut WINDOW: HWND = std::ptr::null_mut();
@@ -49,7 +45,7 @@ fn main() {
         }
     });
 
-    let my_looper_handle = std::thread::spawn(|| looper());
+    std::thread::spawn(|| looper());
 
     a.run().unwrap();
 }
@@ -113,17 +109,6 @@ fn middle_panel(parent: &mut group::Flex) {
     let mut myimage = image::SvgImage::load("gravurzeile.svg").unwrap();
     myimage.scale(200, 200, true, true);
     frame.set_image(Some(myimage));
-    //place my image in a new box with the size 100 x 100
-
-
-
-
-
-
-    // frame.set_image_scaled(Some(myimage));
-
-    // load myimage to the frame
-    // frame.set_image(Some(myimage));
     
     let spacer = frame::Frame::default();
 
@@ -166,40 +151,6 @@ fn process_barcode( i : &mut input::Input) {
     notif.show().unwrap();
 }
 
-fn old() {
-    let a = app::App::default();
-    let mut win = window::Window::default().with_size(800, 600);
-    win.set_label("BarcodeScanner");
-
-    // switch theme to dark
-    let theme = WidgetTheme::new(ThemeType::Dark);
-    theme.apply();
-
-    let mut inp = input::Input::default()
-        .with_size(320, 30)
-        .center_of_parent();
-    inp.set_trigger(enums::CallbackTrigger::EnterKey);
-    inp.set_callback(|i| process_barcode(i));
-
-    win.end();
-    win.show();
-    // do you really want do close the window?
-    win.set_callback(|w| {
-        let choice = dialog::choice2_default("Barcodescanner beenden?", "Nein", "Ja", "Abbruch");
-        println!("{:?}", choice);
-        if choice == Some(1) {
-              let mut notif = Notification::new();
-              notif.summary("Barcodescanner beendet");
-              notif.show().unwrap();
-            w.hide();
-        }
-    });
-
-    let my_looper_handle = std::thread::spawn(|| looper());
-
-    a.run().unwrap();
-}
-
 fn hide_console_window() {
     use std::ptr;
     use winapi::um::wincon::GetConsoleWindow;
@@ -214,10 +165,20 @@ fn hide_console_window() {
     }
 }
 
+// #[tokio::main]
+// async fn my_get() -> Result<(), Box<dyn std::error::Error>> {
+//     let resp = reqwest::get("https://httpbin.org/ip")
+//         .await?
+//         .json::<HashMap<String, String>>()
+//         .await?;
+//     println!("{:#?}", resp);
+//     Ok(())
+// }
 
 fn looper() {
     hide_console_window();
 
+    // my_get().unwrap();
 
 
     let mut manager = RawInputManager::new().unwrap();

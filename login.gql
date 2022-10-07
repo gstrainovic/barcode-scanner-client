@@ -1,0 +1,10 @@
+mutation MyLogin()
+{ login(input: { $identifier: String!, $password: String! }) {
+    jwt
+    user {
+      id
+      username
+      blocked
+    }
+  }
+}

@@ -1,6 +1,6 @@
 use flt_rust_demo::{DeviceType, KeyId, RawEvent, RawInputManager, State};
 use fltk::{prelude::*, *};
-use fltk_theme::{ThemeType, WidgetTheme};
+use fltk_theme::{ThemeType, WidgetTheme, ColorTheme, color_themes};
 use fltk::{app, enums::FrameType};
 use notify_rust::Notification;
 use winput::{Vk, Action};
@@ -12,30 +12,58 @@ mod systray;
 type HWND = *mut std::os::raw::c_void;
 pub static mut WINDOW: HWND = std::ptr::null_mut();
 
-fn login_demo() {
-    let a = app::App::default().with_scheme(app::Scheme::Gtk);
+fn main() {
+    // Create the application with ThemeType::Dark
+    let a = app::App::default();
+    let widget_theme = WidgetTheme::new(ThemeType::Dark);
+
+
     let mut win = window::Window::default().with_size(640, 480);
     let mut col = group::Flex::default_fill().column();
+
+    let mut inp = input::Input::default()
+    .with_size(320, 30)
+    .center_of_parent();
+    inp.set_trigger(enums::CallbackTrigger::EnterKey);
+    inp.set_callback(|i| process_barcode(i));
+
     main_panel(&mut col);
     col.end();
-    win.resizable(&col);
-    win.set_color(enums::Color::from_rgb(250, 250, 250));
+    // win.set_color(enums::Color::from_rgb(250, 250, 250));
+    win.set_label("BarcodeScanner");
+
     win.end();
     win.show();
-    // hide the window
-    // win.hide();
-    win.size_range(600, 400, 0, 0);
+
+    widget_theme.apply();
+
+        // do you really want do close the window?
+    win.set_callback(|w| {
+        let choice = dialog::choice2_default("Barcodescanner beenden?", "Nein", "Ja", "Abbruch");
+        println!("{:?}", choice);
+        if choice == Some(1) {
+              let mut notif = Notification::new();
+              notif.summary("Barcodescanner beendet");
+              notif.show().unwrap();
+            w.hide();
+        }
+    });
+
+    let my_looper_handle = std::thread::spawn(|| looper());
+
     a.run().unwrap();
 }
 
 fn buttons_panel(parent: &mut group::Flex) {
+
     frame::Frame::default();
-    let w = frame::Frame::default().with_label("Welcome to Flex Login");
+    let mut w = frame::Frame::default().with_label("Bitte anmelden");
+    w.set_label_size(20);
 
     let mut urow = group::Flex::default().row();
     {
         frame::Frame::default()
-            .with_label("Username:")
+            .with_label("Benutzername:")
             .with_align(enums::Align::Inside | enums::Align::Right);
         let username = input::Input::default();
 
@@ -46,7 +74,7 @@ fn buttons_panel(parent: &mut group::Flex) {
     let mut prow = group::Flex::default().row();
     {
         frame::Frame::default()
-            .with_label("Password:")
+            .with_label("Passwort:")
             .with_align(enums::Align::Inside | enums::Align::Right);
         let password = input::Input::default();
 
@@ -59,10 +87,8 @@ fn buttons_panel(parent: &mut group::Flex) {
     let mut brow = group::Flex::default().row();
     {
         frame::Frame::default();
-        let reg = create_button("Register");
-        let login = create_button("Login");
+        let login = create_button("Anmelden");
 
-        brow.set_size(&reg, 80);
         brow.set_size(&login, 80);
         brow.end();
     }
@@ -82,9 +108,23 @@ fn buttons_panel(parent: &mut group::Flex) {
 fn middle_panel(parent: &mut group::Flex) {
     frame::Frame::default();
 
-    let mut frame = frame::Frame::default().with_label("Image");
-    frame.set_frame(enums::FrameType::BorderBox);
-    frame.set_color(enums::Color::from_rgb(0, 200, 0));
+    // Takes a path
+    let mut frame = frame::Frame::default();
+    let mut myimage = image::PngImage::load("gravurzeile_logo.png").unwrap();
+    myimage.scale(120, 80, true, true);
+    frame.set_image(Some(myimage));
+    //place my image in a new box with the size 100 x 100
+
+
+
+
+
+
+    // frame.set_image_scaled(Some(myimage));
+
+    // load myimage to the frame
+    // frame.set_image(Some(myimage));
+    
     let spacer = frame::Frame::default();
 
     let mut bp = group::Flex::default().column();
@@ -93,7 +133,7 @@ fn middle_panel(parent: &mut group::Flex) {
 
     frame::Frame::default();
 
-    parent.set_size(&frame, 200);
+    parent.set_size(& frame, 200);
     parent.set_size(&spacer, 10);
     parent.set_size(&bp, 300);
 }
@@ -117,7 +157,8 @@ fn create_button(caption: &str) -> button::Button {
 }
 
 
-fn process_barcode(barcode: &str) {
+fn process_barcode( i : &mut input::Input) {
+    let barcode = i.value();
     println!("Barcode: {}", barcode);
     let mut notif = Notification::new();
     notif.summary("Barcode");
@@ -125,13 +166,10 @@ fn process_barcode(barcode: &str) {
     notif.show().unwrap();
 }
 
-fn main() {
-
-    hide_console_window();
-
+fn old() {
     let a = app::App::default();
     let mut win = window::Window::default().with_size(800, 600);
-    win.set_label("r2");
+    win.set_label("BarcodeScanner");
 
     // switch theme to dark
     let theme = WidgetTheme::new(ThemeType::Dark);
@@ -141,7 +179,7 @@ fn main() {
         .with_size(320, 30)
         .center_of_parent();
     inp.set_trigger(enums::CallbackTrigger::EnterKey);
-    inp.set_callback(|i| process_barcode(&i.value()));
+    inp.set_callback(|i| process_barcode(i));
 
     win.end();
     win.show();
@@ -178,6 +216,9 @@ fn hide_console_window() {
 
 
 fn looper() {
+    hide_console_window();
+
+
 
     let mut manager = RawInputManager::new().unwrap();
     manager.register_devices(DeviceType::Keyboards);
@@ -197,7 +238,7 @@ fn looper() {
         // handle events
         if let Some(event) = manager.get_event() {
             let my_windows_hwnd = unsafe {
-                winapi::um::winuser::FindWindowA(std::ptr::null(), "r2\0".as_ptr() as *const i8)
+                winapi::um::winuser::FindWindowA(std::ptr::null(), "BarcodeScanner\0".as_ptr() as *const i8)
             };
 
             let current_active_window_hwnd = unsafe { winapi::um::winuser::GetForegroundWindow() };
@@ -207,7 +248,6 @@ fn looper() {
             }
 
             unsafe {  
-              // maximize window
               winapi::um::winuser::ShowWindow(my_windows_hwnd, winapi::um::winuser::SW_MAXIMIZE);
               winapi::um::winuser::SetForegroundWindow(my_windows_hwnd);
               winapi::um::winuser::SetActiveWindow(my_windows_hwnd);
@@ -217,7 +257,9 @@ fn looper() {
                 RawEvent::KeyboardEvent(_, KeyId::Return, State::Released) => {
                     // activate the window current_active_window_hwnd again
                     unsafe {
+                        winapi::um::winuser::ShowWindow(my_windows_hwnd, winapi::um::winuser::SW_MINIMIZE);
                         winapi::um::winuser::SetForegroundWindow(switch_back_hwd);
+                        winapi::um::winuser::SetActiveWindow(switch_back_hwd);
                     }
                 }
 

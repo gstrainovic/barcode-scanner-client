@@ -110,8 +110,8 @@ fn middle_panel(parent: &mut group::Flex) {
 
     // Takes a path
     let mut frame = frame::Frame::default();
-    let mut myimage = image::PngImage::load("gravurzeile_logo.png").unwrap();
-    myimage.scale(120, 80, true, true);
+    let mut myimage = image::SvgImage::load("gravurzeile.svg").unwrap();
+    myimage.scale(200, 200, true, true);
     frame.set_image(Some(myimage));
     //place my image in a new box with the size 100 x 100
 

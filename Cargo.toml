@@ -7,6 +7,7 @@ edition = "2021"
 fltk = { version = "^1.2", features = ["fltk-bundled"] }
 fltk-theme = "0.4"
 notify-rust = "4"
+winput = "0.2.5"
 
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "0.3", features = ["wincon", "winuser", "basetsd", "hidpi", "winnt", "libloaderapi", "fileapi", "hidsdi", "handleapi"] }

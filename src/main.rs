@@ -3,6 +3,8 @@ use fltk::{prelude::*, *};
 use fltk_theme::{ThemeType, WidgetTheme};
 use fltk::{app, enums::FrameType};
 use notify_rust::Notification;
+use winput::{Vk, Action};
+use winput::message_loop;
 
 #[cfg(target_os = "windows")]
 mod systray;
@@ -10,7 +12,7 @@ mod systray;
 type HWND = *mut std::os::raw::c_void;
 pub static mut WINDOW: HWND = std::ptr::null_mut();
 
-fn main() {
+fn login_demo() {
     let a = app::App::default().with_scheme(app::Scheme::Gtk);
     let mut win = window::Window::default().with_size(640, 480);
     let mut col = group::Flex::default_fill().column();
@@ -20,6 +22,8 @@ fn main() {
     win.set_color(enums::Color::from_rgb(250, 250, 250));
     win.end();
     win.show();
+    // hide the window
+    // win.hide();
     win.size_range(600, 400, 0, 0);
     a.run().unwrap();
 }
@@ -121,12 +125,12 @@ fn process_barcode(barcode: &str) {
     notif.show().unwrap();
 }
 
-fn mo() {
+fn main() {
 
     hide_console_window();
 
     let a = app::App::default();
-    let mut win = window::Window::default().with_size(400, 300);
+    let mut win = window::Window::default().with_size(800, 600);
     win.set_label("r2");
 
     // switch theme to dark
@@ -134,14 +138,13 @@ fn mo() {
     theme.apply();
 
     let mut inp = input::Input::default()
-        .with_size(160, 30)
+        .with_size(320, 30)
         .center_of_parent();
     inp.set_trigger(enums::CallbackTrigger::EnterKey);
     inp.set_callback(|i| process_barcode(&i.value()));
 
     win.end();
     win.show();
-    
     // do you really want do close the window?
     win.set_callback(|w| {
         let choice = dialog::choice2_default("Barcodescanner beenden?", "Nein", "Ja", "Abbruch");
@@ -193,7 +196,6 @@ fn looper() {
     loop {
         // handle events
         if let Some(event) = manager.get_event() {
-            // get HWND from window with the title 2
             let my_windows_hwnd = unsafe {
                 winapi::um::winuser::FindWindowA(std::ptr::null(), "r2\0".as_ptr() as *const i8)
             };
@@ -204,12 +206,11 @@ fn looper() {
                 switch_back_hwd = current_active_window_hwnd;
             }
 
-            // activate the window with the title "r2"
-            unsafe {
-                winapi::um::winuser::SetForegroundWindow(winapi::um::winuser::FindWindowA(
-                    std::ptr::null(),
-                    "r2\0".as_ptr() as *const i8,
-                ));
+            unsafe {  
+              // maximize window
+              winapi::um::winuser::ShowWindow(my_windows_hwnd, winapi::um::winuser::SW_MAXIMIZE);
+              winapi::um::winuser::SetForegroundWindow(my_windows_hwnd);
+              winapi::um::winuser::SetActiveWindow(my_windows_hwnd);
             }
 
             match event {

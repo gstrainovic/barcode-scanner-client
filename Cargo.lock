@@ -298,6 +298,7 @@ dependencies = [
  "native-windows-gui",
  "notify-rust",
  "winapi",
+ "winput",
 ]
 
 [[package]]
@@ -1138,6 +1139,15 @@ name = "windows_x86_64_msvc"
 version = "0.39.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5e4d40883ae9cae962787ca76ba76390ffa29214667a111db9e0a1ad8377e809"
+
+[[package]]
+name = "winput"
+version = "0.2.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dd4bec39938e0ae68b300e2a4197b6437f13d53d1c146c6e297e346a71d5dde9"
+dependencies = [
+ "winapi",
+]
 
 [[package]]
 name = "zbus"

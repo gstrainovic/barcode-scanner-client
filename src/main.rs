@@ -8,6 +8,20 @@ use notify_rust::Notification;
 type HWND = *mut std::os::raw::c_void;
 pub static mut WINDOW: HWND = std::ptr::null_mut();
 
+fn login() {
+  use std::collections::HashMap;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let resp = reqwest::get("https://httpbin.org/ip")
+        .await?
+        .json::<HashMap<String, String>>()
+        .await?;
+    println!("{:#?}", resp);
+    Ok(())
+}
+}
+
 fn main() {
     // Create the application with ThemeType::Dark
     let a = app::App::default();

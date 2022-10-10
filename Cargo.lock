@@ -338,7 +338,6 @@ version = "0.1.0"
 dependencies = [
  "fltk",
  "fltk-theme",
- "native-windows-gui",
  "notify-rust",
  "reqwest",
  "tokio",
@@ -754,18 +753,6 @@ dependencies = [
  "security-framework",
  "security-framework-sys",
  "tempfile",
-]
-
-[[package]]
-name = "native-windows-gui"
-version = "1.0.13"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4f7003a669f68deb6b7c57d74fff4f8e533c44a3f0b297492440ef4ff5a28454"
-dependencies = [
- "bitflags",
- "lazy_static",
- "winapi",
- "winapi-build",
 ]
 
 [[package]]
@@ -1674,12 +1661,6 @@ dependencies = [
  "winapi-i686-pc-windows-gnu",
  "winapi-x86_64-pc-windows-gnu",
 ]
-
-[[package]]
-name = "winapi-build"
-version = "0.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2d315eee3b34aca4797b2da6b13ed88266e6d612562a0c46390af8299fc699bc"
 
 [[package]]
 name = "winapi-i686-pc-windows-gnu"

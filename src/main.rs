@@ -1,39 +1,37 @@
 use flt_rust_demo::{DeviceType, KeyId, RawEvent, RawInputManager, State};
+use fltk::app;
 use fltk::{prelude::*, *};
 use fltk_theme::{ThemeType, WidgetTheme};
-use fltk::{app};
 use notify_rust::Notification;
-// use std::collections::HashMap;
+use std::collections::HashMap;
 
 type HWND = *mut std::os::raw::c_void;
 pub static mut WINDOW: HWND = std::ptr::null_mut();
 
-fn login() {
-  use std::collections::HashMap;
-
+// hello world function with reqwest
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+
+async fn login() -> Result<HashMap<String, String>, reqwest::Error> {
     let resp = reqwest::get("https://httpbin.org/ip")
         .await?
         .json::<HashMap<String, String>>()
         .await?;
-    println!("{:#?}", resp);
-    Ok(())
-}
+    return Ok(resp);
 }
 
 fn main() {
+    let resp = login();
+    println!("{:#?}", resp);
     // Create the application with ThemeType::Dark
     let a = app::App::default();
     let widget_theme = WidgetTheme::new(ThemeType::Dark);
-
 
     let mut win = window::Window::default().with_size(640, 480);
     let mut col = group::Flex::default_fill().column();
 
     let mut inp = input::Input::default()
-    .with_size(320, 30)
-    .center_of_parent();
+        .with_size(320, 30)
+        .center_of_parent();
     inp.set_trigger(enums::CallbackTrigger::EnterKey);
     inp.set_callback(|i| process_barcode(i));
 
@@ -47,14 +45,14 @@ fn main() {
 
     widget_theme.apply();
 
-        // do you really want do close the window?
+    // do you really want do close the window?
     win.set_callback(|w| {
         let choice = dialog::choice2_default("Barcodescanner beenden?", "Nein", "Ja", "Abbruch");
         println!("{:?}", choice);
         if choice == Some(1) {
-              let mut notif = Notification::new();
-              notif.summary("Barcodescanner beendet");
-              notif.show().unwrap();
+            let mut notif = Notification::new();
+            notif.summary("Barcodescanner beendet");
+            notif.show().unwrap();
             w.hide();
         }
     });
@@ -65,7 +63,6 @@ fn main() {
 }
 
 fn buttons_panel(parent: &mut group::Flex) {
-
     frame::Frame::default();
     let mut w = frame::Frame::default().with_label("Bitte anmelden");
     w.set_label_size(20);
@@ -123,7 +120,7 @@ fn middle_panel(parent: &mut group::Flex) {
     let mut myimage = image::SvgImage::load("gravurzeile.svg").unwrap();
     myimage.scale(200, 200, true, true);
     frame.set_image(Some(myimage));
-    
+
     let spacer = frame::Frame::default();
 
     let mut bp = group::Flex::default().column();
@@ -132,7 +129,7 @@ fn middle_panel(parent: &mut group::Flex) {
 
     frame::Frame::default();
 
-    parent.set_size(& frame, 200);
+    parent.set_size(&frame, 200);
     parent.set_size(&spacer, 10);
     parent.set_size(&bp, 300);
 }
@@ -155,8 +152,7 @@ fn create_button(caption: &str) -> button::Button {
     btn
 }
 
-
-fn process_barcode( i : &mut input::Input) {
+fn process_barcode(i: &mut input::Input) {
     let barcode = i.value();
     println!("Barcode: {}", barcode);
     let mut notif = Notification::new();
@@ -170,7 +166,7 @@ fn hide_console_window() {
     use winapi::um::wincon::GetConsoleWindow;
     use winapi::um::winuser::{ShowWindow, SW_HIDE};
 
-    let window = unsafe {GetConsoleWindow()};
+    let window = unsafe { GetConsoleWindow() };
     // https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-showwindow
     if window != ptr::null_mut() {
         unsafe {
@@ -194,7 +190,6 @@ fn looper() {
 
     // my_get().unwrap();
 
-
     let mut manager = RawInputManager::new().unwrap();
     manager.register_devices(DeviceType::Keyboards);
     let devices = manager.get_device_list();
@@ -213,7 +208,10 @@ fn looper() {
         // handle events
         if let Some(event) = manager.get_event() {
             let my_windows_hwnd = unsafe {
-                winapi::um::winuser::FindWindowA(std::ptr::null(), "BarcodeScanner\0".as_ptr() as *const i8)
+                winapi::um::winuser::FindWindowA(
+                    std::ptr::null(),
+                    "BarcodeScanner\0".as_ptr() as *const i8,
+                )
             };
 
             let current_active_window_hwnd = unsafe { winapi::um::winuser::GetForegroundWindow() };
@@ -222,17 +220,20 @@ fn looper() {
                 switch_back_hwd = current_active_window_hwnd;
             }
 
-            unsafe {  
-              winapi::um::winuser::ShowWindow(my_windows_hwnd, winapi::um::winuser::SW_MAXIMIZE);
-              winapi::um::winuser::SetForegroundWindow(my_windows_hwnd);
-              winapi::um::winuser::SetActiveWindow(my_windows_hwnd);
+            unsafe {
+                winapi::um::winuser::ShowWindow(my_windows_hwnd, winapi::um::winuser::SW_MAXIMIZE);
+                winapi::um::winuser::SetForegroundWindow(my_windows_hwnd);
+                winapi::um::winuser::SetActiveWindow(my_windows_hwnd);
             }
 
             match event {
                 RawEvent::KeyboardEvent(_, KeyId::Return, State::Released) => {
                     // activate the window current_active_window_hwnd again
                     unsafe {
-                        winapi::um::winuser::ShowWindow(my_windows_hwnd, winapi::um::winuser::SW_MINIMIZE);
+                        winapi::um::winuser::ShowWindow(
+                            my_windows_hwnd,
+                            winapi::um::winuser::SW_MINIMIZE,
+                        );
                         winapi::um::winuser::SetForegroundWindow(switch_back_hwd);
                         winapi::um::winuser::SetActiveWindow(switch_back_hwd);
                     }

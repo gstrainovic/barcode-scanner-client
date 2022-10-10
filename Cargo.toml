@@ -12,4 +12,4 @@ tokio = { version = "1", features = ["full"] }
 
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "0.3", features = ["wincon", "winuser", "basetsd", "hidpi", "winnt", "libloaderapi", "fileapi", "hidsdi", "handleapi"] }
-native-windows-gui = { version = "1.0.10", default-features=false, features=["tray-notification", "message-window", "menu", "cursor"] }
+# native-windows-gui = { version = "1.0.10", default-features=false, features=["tray-notification", "message-window", "menu", "cursor"] }

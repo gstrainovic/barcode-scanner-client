@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use flt_rust_demo::{DeviceType, KeyId, RawEvent, RawInputManager, State};
+use flt_rust_demo::{DeviceType, KeyId, RawEvent, RawInputManager, State, KeyboardDisplayInfo};
 use fltk::app;
 use fltk::{prelude::*, *};
 use fltk::{
@@ -35,51 +35,63 @@ async fn loginfn() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 
+fn draw_gallery(win: &mut window::Window, manager: RawInputManager) {
 
-fn draw_gallery(w: i32 ,h: i32) {
+    let w = win.width();
+    let h = win.height(); 
 
     let mut tab = Tabs::new(10, 10,  w - 20, h - 20, "");
 
       let grp1 = Group::new(10, 35, w - 20, h - 45, "Tab1\t\t");
+
         let mut pack = Pack::new(15, 45, 150, 450 - 45, "");
         pack.set_spacing(10);
         pack.end();
-        let mut g1next = button::Button::new(w - 125, h - 50, 100, 30, "Weiter");
-        let mut g1back = button::Button::new(25, h - 50, 100, 30, "Zurück");
-      grp1.end();
 
-      let grp2 = Group::new(10, 35, w - 30, h - 25, "Tab2\t\t");
         let mut col = group::Flex::default_fill().column();
         main_panel(&mut col);
         col.end();
-        let mut g2next = button::Button::new(w - 125, h - 50, 100, 30, "Weiter");
-        let mut g2back = button::Button::new(25, h - 50, 100, 30, "Zurück");
-      grp2.end();
-    
-      let grp3 = Group::new(10, 35, w - 30, 450 - 25, "Tab3\t\t");
+        
+        let mut g1next = button::Button::new(w - 125, h - 50, 100, 30, "Weiter");
+        let mut g1back = button::Button::new(25, h - 50, 100, 30, "Zurück");
+        grp1.end();
+
+      let grp2 = Group::new(10, 35, w - 30, h - 25, "Tab2\t\t");
+        // output gf with label 'Gerät'
+        let mut gf = frame::Frame::new(50, 50, 150, 30, "Scanner:");
+        let mut bf = frame::Frame::new(50, 100, 150, 30, "Benutzer:");
+        let mut rf = frame::Frame::new(50, 150, 150, 30, "Rolle:");
+
         let mut inp = input::Input::default()
+            .with_label("Barcode:")
             .with_size(320, 30)
-            .center_of_parent();
+            .with_pos(50, 200);
         inp.set_trigger(enums::CallbackTrigger::EnterKey);
         inp.set_callback(|i| process_barcode(i));
-        let mut g3next = button::Button::new(w - 125, h - 50, 100, 30, "Weiter");
-        let mut g3back = button::Button::new(25, h - 50, 100, 30, "Zurück");
-      grp3.end();
 
+        let mut g2next = button::Button::new(w - 125, h - 50, 100, 30, "Weiter");
+        let mut g2back = button::Button::new(25, h - 50, 100, 30, "Zurück");
+
+      grp2.end();
+
+      // let tab_c = tab.clone();
+      let tab_c = tab.clone();
+      let grpc2_c = grp2.clone();
+      std::thread::spawn(move || {
+        looper(tab_c, grpc2_c, gf, bf, rf, manager);
+      });
+      
         g1back.deactivate();
         
         g1next.set_callback({
             let mut wiz_c = tab.clone();
-            let mut grp2_c = grp2.clone();
             move |_| {
-                wiz_c.set_value(&grp2_c);
-            }
-        });
-
-        g2next.set_callback({
-            let mut wiz_c = tab.clone();
-            move |_| {
-                wiz_c.set_value(&grp3);
+              // let mut tab_c = wiz_c.clone();
+              // let mut grp_c = grp2.clone();
+              // let mut gf_c = gf.clone();
+              // let mut bf_c = bf.clone();
+              // let mut rf_c = rf.clone();
+              wiz_c.set_value(&grp2);
             }
         });
 
@@ -90,77 +102,16 @@ fn draw_gallery(w: i32 ,h: i32) {
             }
         });
 
-        g3back.set_callback({
-            let mut wiz_c = tab.clone();
-            let mut grp2_c = grp2.clone();
-            move |_| {
-                wiz_c.set_value(&grp2_c);
-            }
-        });
-
-        g3next.deactivate();
+        g2next.deactivate();
 
     tab.end();
-
-    // let groups1 = [grp1, grp2, grp3];
-    // let groups2 = [&grp1, &grp2, &grp3];
-
-    // next and back buttons on the bottom for the tabs
-
-    // next.set_callback(move | b | {
-    //   let current_tab = groups1.iter().position(|x| x.visible()).unwrap();
-    //   let grouplen = groups1.len() - 1 ;
-      
-    //   println!("current tab: {}", current_tab);
-    //   println!("group len: {}", grouplen);
-    //   println!("************");
-
-    //   if current_tab < grouplen {
-    //     let nw = groups1.get(current_tab + 1).unwrap();
-    //     tab.set_value(nw);
-    //   }
-
-    //   let current_tab = groups1.iter().position(|x| x.visible()).unwrap();
-    //   if current_tab == grouplen  {
-    //     b.deactivate();
-    //   }
-
-    //   println!("current tab: {}", current_tab);
-    //   println!("group len: {}", grouplen);
-    //   println!("************");
-    // });
-
-    // back.set_callback(move | bb| {
-    //   let current_tab = groups2.iter().position(|x| x.visible()).unwrap();
-    //   let grouplen = groups2.len() - 1 ;
-      
-    //   println!("current tab: {}", current_tab);
-    //   println!("group len: {}", grouplen);
-    //   println!("************");
-
-    //   if current_tab < grouplen {
-    //     let nw2 = groups2.get(current_tab - 1).unwrap();
-    //     tab.set_value(nw2);
-    //   }
-
-    //   let current_tab = groups2.iter().position(|x| x.visible()).unwrap();
-    //   if current_tab == grouplen  {
-    //     bb.deactivate();
-    //   }
-
-    //   println!("current tab: {}", current_tab);
-    //   println!("group len: {}", grouplen);
-    //   println!("************");
-    // });
-
-
 
 }
 
 fn main() {
+    hide_console_window();
 
-    let w = 640;
-    let h = 480;
+    let manager = find_device();
 
     // Create the application with ThemeType::Dark
     let a = app::App::default();
@@ -168,7 +119,7 @@ fn main() {
     let widget_theme = WidgetTheme::new(ThemeType::Dark);
     widget_theme.apply();
 
-    let mut win = window::Window::default().with_size(w, h);
+    let mut win = window::Window::default().with_size(640, 480);
     win.set_label("BarcodeScanner");
     win.set_callback(|w| {
         let choice = dialog::choice2_default("Barcodescanner beenden?", "Nein", "Ja", "Abbruch");
@@ -181,12 +132,11 @@ fn main() {
         }
     });
 
-    draw_gallery(w, h);
+    draw_gallery(&mut win, manager);
 
     win.end();
     win.show();
 
-    std::thread::spawn(|| looper());
 
     a.run().unwrap();
 }
@@ -212,7 +162,7 @@ fn buttons_panel(parent: &mut group::Flex) {
         frame::Frame::default()
             .with_label("Passwort:")
             .with_align(enums::Align::Inside | enums::Align::Right);
-        let password = input::Input::default();
+        let password = input::SecretInput::default();
 
         prow.set_size(&password, 180);
         prow.end();
@@ -329,21 +279,37 @@ fn hide_console_window() {
 //     Ok(())
 // }
 
-fn looper() {
-    hide_console_window();
-
-    // my_get().unwrap();
-
-    let mut manager = RawInputManager::new().unwrap();
+fn find_device() -> RawInputManager {
+  let mut manager = RawInputManager::new().unwrap();
     manager.register_devices(DeviceType::Keyboards);
     let devices = manager.get_device_list();
 
-    //Filter to pickup events from the first keyboard only
-    let keyboard = devices.keyboards.first().unwrap();
-    manager.filter_devices(vec![keyboard.name.clone()]);
-    //manager.unfilter_devices();
+    println!("Devices: {:?}", devices);
 
-    println!("{:?}", devices);
+    let keyboards = Arc::new(devices.keyboards);
+
+    println!("Keyboards: {:?}", keyboards);
+
+    // filter keyboard which contains 'VID_0483&PID_5750', send alert if not found
+    let keyboard = keyboards
+        .iter()
+        .find(|k| k.name.contains("VID_0483&PID_5750"))
+        .unwrap_or_else(|| {
+            // dialog::alert_default("Barcodescanner nicht gefunden, bitte anstecken und einschalte und Programm erneut starten");
+            println!("Keyboard not found");
+            dialog::alert_default("Barcodescanner nicht gefunden. Bitte anschliessen, einschalten und Programm neu starten");
+            std::process::exit(1);
+        });
+    println!("Keyboard: {:?}", keyboard);
+    // gf.set_label(&keyboard.name);
+    
+    manager.filter_devices(vec![keyboard.name.clone()]);
+    return manager;
+
+}
+
+
+fn looper(mut tab : Tabs, mut grp : Group, mut gf : frame::Frame, mut bf : frame::Frame, mut rf : frame::Frame, mut manager: RawInputManager) {
 
     // list of characters
     let mut switch_back_hwd = unsafe { winapi::um::winuser::GetForegroundWindow() };
@@ -351,6 +317,9 @@ fn looper() {
     loop {
         // handle events
         if let Some(event) = manager.get_event() {
+
+            println!("Event: {:?}", event);
+
             let my_windows_hwnd = unsafe {
                 winapi::um::winuser::FindWindowA(
                     std::ptr::null(),
@@ -368,6 +337,7 @@ fn looper() {
                 winapi::um::winuser::ShowWindow(my_windows_hwnd, winapi::um::winuser::SW_MAXIMIZE);
                 winapi::um::winuser::SetForegroundWindow(my_windows_hwnd);
                 winapi::um::winuser::SetActiveWindow(my_windows_hwnd);
+                tab.set_value(&mut grp);
             }
 
             match event {

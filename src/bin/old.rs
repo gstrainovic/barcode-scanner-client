@@ -1,15 +1,12 @@
 use std::sync::Arc;
 
-use flt_rust_demo::{DeviceType, KeyId, RawEvent, RawInputManager, State, KeyboardDisplayInfo};
-use fltk::app;
-use fltk::{prelude::*, *};
+use flt_rust_demo::{DeviceType, KeyId, RawEvent, RawInputManager, State};
 use fltk::{
-    button::*,
+    app, button, group,
     group::{Group, Pack, Tabs},
-    input::Input,
-    menu::{Choice, MenuButton},
-    output::Output,
+    window,
 };
+use fltk::{prelude::*, *};
 use fltk_theme::{ThemeType, WidgetTheme};
 use notify_rust::Notification;
 use serde_json::json;
@@ -17,7 +14,6 @@ use serde_json::json;
 type HWND = *mut std::os::raw::c_void;
 pub static mut WINDOW: HWND = std::ptr::null_mut();
 
-// hello world function with reqwest and response with a object
 #[tokio::main]
 async fn loginfn() -> Result<(), Box<dyn std::error::Error>> {
     let client = reqwest::Client::new();
@@ -29,97 +25,35 @@ async fn loginfn() -> Result<(), Box<dyn std::error::Error>> {
         }))
         .send()
         .await?;
-    let body = res.json::<serde_json::Value>().await?;
-    println!("{:?}", body);
+
+    println!("Status: {}", res.status());
+
+    let body = res.text().await?;
+
+    println!("Body2: {}", body);
+
+    // let body = res.json::<serde_json::Value>().await?;
+    // println!("{:?}", body);
+
+    let mut notif = Notification::new();
+    notif.summary("Anmeldung");
+    notif.show().unwrap();
+
     Ok(())
-}
-
-
-fn draw_gallery(win: &mut window::Window, manager: RawInputManager) {
-
-    let w = win.width();
-    let h = win.height(); 
-
-    let mut tab = Tabs::new(10, 10,  w - 20, h - 20, "");
-
-      let grp1 = Group::new(10, 35, w - 20, h - 45, "Tab1\t\t");
-
-        let mut pack = Pack::new(15, 45, 150, 450 - 45, "");
-        pack.set_spacing(10);
-        pack.end();
-
-        let mut col = group::Flex::default_fill().column();
-        main_panel(&mut col);
-        col.end();
-        
-        let mut g1next = button::Button::new(w - 125, h - 50, 100, 30, "Weiter");
-        let mut g1back = button::Button::new(25, h - 50, 100, 30, "Zurück");
-        grp1.end();
-
-      let grp2 = Group::new(10, 35, w - 30, h - 25, "Tab2\t\t");
-        // output gf with label 'Gerät'
-        let mut gf = frame::Frame::new(50, 50, 150, 30, "Scanner:");
-        let mut bf = frame::Frame::new(50, 100, 150, 30, "Benutzer:");
-        let mut rf = frame::Frame::new(50, 150, 150, 30, "Rolle:");
-
-        let mut inp = input::Input::default()
-            .with_label("Barcode:")
-            .with_size(320, 30)
-            .with_pos(50, 200);
-        inp.set_trigger(enums::CallbackTrigger::EnterKey);
-        inp.set_callback(|i| process_barcode(i));
-
-        let mut g2next = button::Button::new(w - 125, h - 50, 100, 30, "Weiter");
-        let mut g2back = button::Button::new(25, h - 50, 100, 30, "Zurück");
-
-      grp2.end();
-
-      // let tab_c = tab.clone();
-      let tab_c = tab.clone();
-      let grpc2_c = grp2.clone();
-      std::thread::spawn(move || {
-        looper(tab_c, grpc2_c, gf, bf, rf, manager);
-      });
-      
-        g1back.deactivate();
-        
-        g1next.set_callback({
-            let mut wiz_c = tab.clone();
-            move |_| {
-              // let mut tab_c = wiz_c.clone();
-              // let mut grp_c = grp2.clone();
-              // let mut gf_c = gf.clone();
-              // let mut bf_c = bf.clone();
-              // let mut rf_c = rf.clone();
-              wiz_c.set_value(&grp2);
-            }
-        });
-
-        g2back.set_callback({
-            let mut wiz_c = tab.clone();
-            move |_| {
-                wiz_c.set_value(&grp1);
-            }
-        });
-
-        g2next.deactivate();
-
-    tab.end();
-
 }
 
 fn main() {
     hide_console_window();
+    find_device();
 
-    let manager = find_device();
+    let w = 640;
+    let h = 480;
 
-    // Create the application with ThemeType::Dark
     let a = app::App::default();
-    
     let widget_theme = WidgetTheme::new(ThemeType::Dark);
     widget_theme.apply();
 
-    let mut win = window::Window::default().with_size(640, 480);
+    let mut win = window::Window::default().with_size(w, h);
     win.set_label("BarcodeScanner");
     win.set_callback(|w| {
         let choice = dialog::choice2_default("Barcodescanner beenden?", "Nein", "Ja", "Abbruch");
@@ -132,30 +66,45 @@ fn main() {
         }
     });
 
-    draw_gallery(&mut win, manager);
+    let wizard = group::Wizard::default().with_size(w, h);
 
-    win.end();
-    win.show();
+    let grp1 = group::Group::default().size_of(&wizard);
+    let mut pack = Pack::new(15, 45, 150, 450 - 45, "");
+    pack.set_spacing(10);
+    pack.end();
 
+    let col = group::Flex::default_fill().column();
 
-    a.run().unwrap();
-}
-
-fn buttons_panel(parent: &mut group::Flex) {
     frame::Frame::default();
-    let mut w = frame::Frame::default().with_label("Bitte anmelden");
-    w.set_label_size(20);
+
+    let mut mp = group::Flex::default().row();
+
+    frame::Frame::default();
+
+    // Takes a path
+    let mut frame = frame::Frame::default();
+    let mut myimage = image::SvgImage::load("gravurzeile.svg").unwrap();
+    myimage.scale(200, 200, true, true);
+    frame.set_image(Some(myimage));
+
+    let spacer = frame::Frame::default();
+
+    let mut bp = group::Flex::default().column();
+
+    frame::Frame::default();
+    let mut wf = frame::Frame::default().with_label("Bitte anmelden");
+    wf.set_label_size(20);
+
+    let username = input::Input::default();
 
     let mut urow = group::Flex::default().row();
-    {
-        frame::Frame::default()
-            .with_label("Benutzername:")
-            .with_align(enums::Align::Inside | enums::Align::Right);
-        let username = input::Input::default();
+    frame::Frame::default()
+        .with_label("Benutzername:")
+        .with_align(enums::Align::Inside | enums::Align::Right);
 
-        urow.set_size(&username, 180);
-        urow.end();
-    }
+    urow.set_size(&username, 180);
+    urow.add(&username);
+    urow.end();
 
     let mut prow = group::Flex::default().row();
     {
@@ -171,68 +120,87 @@ fn buttons_panel(parent: &mut group::Flex) {
     let pad = frame::Frame::default();
 
     let mut brow = group::Flex::default().row();
-    {
-        frame::Frame::default();
-        let mut login = create_button("Anmelden");
-
-        login.set_callback(|_| {
-            let mut notif = Notification::new();
-            notif.summary("Anmeldung");
-            notif.show().unwrap();
-
-            let resp = loginfn();
-            println!("{:#?}", resp);
-        });
-        
-        brow.set_size(&login, 180);
-        // brow.set_size(&login, 80);
-        brow.end();
-    }
+    frame::Frame::default();
+    let mut login = create_button("Anmelden");
+    brow.set_size(&login, 180);
+    brow.end();
 
     let b = frame::Frame::default();
 
     frame::Frame::default();
 
-    parent.set_size(&w, 60);
-    parent.set_size(&urow, 30);
-    parent.set_size(&prow, 30);
-    parent.set_size(&pad, 1);
-    parent.set_size(&brow, 30);
-    parent.set_size(&b, 30);
-}
+    bp.set_size(&wf, 60);
+    bp.set_size(&urow, 30);
+    bp.set_size(&prow, 30);
+    bp.set_size(&pad, 1);
+    bp.set_size(&brow, 30);
+    bp.set_size(&b, 30);
 
-fn middle_panel(parent: &mut group::Flex) {
-    frame::Frame::default();
-
-    // Takes a path
-    let mut frame = frame::Frame::default();
-    let mut myimage = image::SvgImage::load("gravurzeile.svg").unwrap();
-    myimage.scale(200, 200, true, true);
-    frame.set_image(Some(myimage));
-
-    let spacer = frame::Frame::default();
-
-    let mut bp = group::Flex::default().column();
-    buttons_panel(&mut bp);
     bp.end();
 
     frame::Frame::default();
 
-    parent.set_size(&frame, 200);
-    parent.set_size(&spacer, 10);
-    parent.set_size(&bp, 300);
-}
+    mp.set_size(&frame, 200);
+    mp.set_size(&spacer, 10);
+    mp.set_size(&bp, 300);
 
-fn main_panel(parent: &mut group::Flex) {
-    frame::Frame::default();
-
-    let mut mp = group::Flex::default().row();
-    middle_panel(&mut mp);
     mp.end();
 
     frame::Frame::default();
 
-    parent.set_size(&mp, 200);
+    col.end();
+
+    grp1.end();
+
+    let mut bf = frame::Frame::new(50, 100, 150, 30, "Benutzer:");
+    let mut rf = frame::Frame::new(50, 150, 150, 30, "Rolle:");
+
+    let mut grp2 = group::Group::default().size_of(&wizard);
+
+    let mut inp = input::Input::default()
+        .with_label("Barcode:")
+        .with_size(320, 30)
+        .with_pos(50, 200);
+    inp.set_trigger(enums::CallbackTrigger::EnterKey);
+    inp.set_callback(|i| process_barcode(i));
+
+    let mut backb = button::Button::new(25, h - 50, 100, 30, "Benutzer wechseln");
+
+    grp2.add(&bf);
+    grp2.add(&rf);
+    grp2.end();
+
+    wizard.end();
+
+    backb.set_callback({
+        let mut wiz_c = wizard.clone();
+        move |_| wiz_c.prev()
+    });
+
+    login.set_callback(move |_| {
+        let _ = loginfn();
+        let benutzer = ["Benutzer: ", &username.value()].concat();
+        bf.set_label(&benutzer);
+
+        rf.set_label("Rolle: - todo");
+
+        // start looper in new thread
+        std::thread::spawn(|| looper());
+
+        let mut wiz_c = wizard.clone();
+        wiz_c.next();
+    });
+
+    // win.set_callback(|_| {
+    //     if fltk::app::event() == fltk::enums::Event::Close {
+    //         app::quit(); // Which would close using the close button. You can also assign other keys to close the application
+    //     }
+    // });
+
+    win.end();
+    win.show();
+
+    a.run().unwrap();
 }
 
 fn create_button(caption: &str) -> button::ReturnButton {
@@ -269,18 +237,8 @@ fn hide_console_window() {
     }
 }
 
-// #[tokio::main]
-// async fn my_get() -> Result<(), Box<dyn std::error::Error>> {
-//     let resp = reqwest::get("https://httpbin.org/ip")
-//         .await?
-//         .json::<HashMap<String, String>>()
-//         .await?;
-//     println!("{:#?}", resp);
-//     Ok(())
-// }
-
 fn find_device() -> RawInputManager {
-  let mut manager = RawInputManager::new().unwrap();
+    let mut manager = RawInputManager::new().unwrap();
     manager.register_devices(DeviceType::Keyboards);
     let devices = manager.get_device_list();
 
@@ -302,22 +260,19 @@ fn find_device() -> RawInputManager {
         });
     println!("Keyboard: {:?}", keyboard);
     // gf.set_label(&keyboard.name);
-    
+
     manager.filter_devices(vec![keyboard.name.clone()]);
     return manager;
-
 }
 
+fn looper() {
+    let mut manager = find_device();
 
-fn looper(mut tab : Tabs, mut grp : Group, mut gf : frame::Frame, mut bf : frame::Frame, mut rf : frame::Frame, mut manager: RawInputManager) {
-
-    // list of characters
     let mut switch_back_hwd = unsafe { winapi::um::winuser::GetForegroundWindow() };
 
     loop {
         // handle events
         if let Some(event) = manager.get_event() {
-
             println!("Event: {:?}", event);
 
             let my_windows_hwnd = unsafe {
@@ -337,7 +292,6 @@ fn looper(mut tab : Tabs, mut grp : Group, mut gf : frame::Frame, mut bf : frame
                 winapi::um::winuser::ShowWindow(my_windows_hwnd, winapi::um::winuser::SW_MAXIMIZE);
                 winapi::um::winuser::SetForegroundWindow(my_windows_hwnd);
                 winapi::um::winuser::SetActiveWindow(my_windows_hwnd);
-                tab.set_value(&mut grp);
             }
 
             match event {

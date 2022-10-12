@@ -10,37 +10,70 @@ use fltk::{prelude::*, *};
 use fltk_theme::{ThemeType, WidgetTheme};
 use notify_rust::Notification;
 use serde_json::json;
+use serde::Deserialize;
 
 type HWND = *mut std::os::raw::c_void;
 pub static mut WINDOW: HWND = std::ptr::null_mut();
 
+#[derive(Deserialize, Debug)]
+struct myjson {
+    jwt: Option<String>,
+    error: Option<String>
+}
+
 #[tokio::main]
-async fn loginfn() -> Result<(), Box<dyn std::error::Error>> {
-    let client = reqwest::Client::new();
+async fn loginfn(user: String, pass: String) -> Result<(myjson), reqwest::Error> {
+
+    let client = reqwest::Client::builder().build()?;
+
     let res = client
         .post("http://167.235.59.184:1337/api/auth/local")
         .json(&json!({
-          "identifier": "g.strainovic@gmail.com",
-          "password": "njM3&?HwtCe#GhV"
+          "identifier": user, //"g.strainovic@gmail.com",
+          "password": pass // "njM3&?HwtCe#GhV"
         }))
         .send()
         .await?;
 
     println!("Status: {}", res.status());
+    println!("Headers:\n{:#?}", res.headers());
 
     let body = res.text().await?;
 
-    println!("Body2: {}", body);
+    println!("Body:\n{}", body);
 
-    // let body = res.json::<serde_json::Value>().await?;
-    // println!("{:?}", body);
+    Ok(serde_json::from_str(&body).unwrap())
 
-    let mut notif = Notification::new();
-    notif.summary("Anmeldung");
-    notif.show().unwrap();
+      // // Parse the response body as Json in this case
+      // let myjson = res
+      //     .json::<myjson>()
+      //     .await?;
 
-    Ok(())
+      // Ok((myjson))
+
+
+    // let mut token : String;
+    // let mut message : String;
+
+    // match res.status() {
+    //     reqwest::StatusCode::OK => println!(
+    //         token = body["jwt"]
+    //         println!("token: {}", token);
+    //     ),
+    //     status => println!("status: {}", status),
+    //     _ => {
+    //       let error = body["message"][0]["messages"][0]["message"].as_str().unwrap();
+    //       println!("error: {}", error);
+    //       message = error;
+    //       // dialog::alert_default(&message);
+    //       // Err(reqwest::Error::new(reqwest::ErrorKind::Other, error))
+    //     }
+    // }
+
+    // // content-length:Some("0") server:Some("gunicorn/19.9.0")
+    // Ok(())
 }
+
 
 fn main() {
     hide_console_window();
@@ -96,26 +129,30 @@ fn main() {
     wf.set_label_size(20);
 
     let username = input::Input::default();
+    let password = input::SecretInput::default();
 
     let mut urow = group::Flex::default().row();
-    frame::Frame::default()
-        .with_label("Benutzername:")
-        .with_align(enums::Align::Inside | enums::Align::Right);
+    {
+        frame::Frame::default()
+            .with_label("Benutzername:")
+            .with_align(enums::Align::Inside | enums::Align::Right);
 
-    urow.set_size(&username, 180);
-    urow.add(&username);
-    urow.end();
+        urow.set_size(&username, 180);
+        urow.add(&username);
+        urow.end();
+    }
 
     let mut prow = group::Flex::default().row();
     {
         frame::Frame::default()
             .with_label("Passwort:")
             .with_align(enums::Align::Inside | enums::Align::Right);
-        let password = input::SecretInput::default();
 
         prow.set_size(&password, 180);
+        prow.add(&password);
         prow.end();
     }
+
 
     let pad = frame::Frame::default();
 
@@ -164,7 +201,7 @@ fn main() {
     inp.set_trigger(enums::CallbackTrigger::EnterKey);
     inp.set_callback(|i| process_barcode(i));
 
-    let mut backb = button::Button::new(25, h - 50, 100, 30, "Benutzer wechseln");
+    let mut backb = button::Button::new(25, h - 50, 100, 30, "Abmelden");
 
     grp2.add(&bf);
     grp2.add(&rf);
@@ -178,7 +215,20 @@ fn main() {
     });
 
     login.set_callback(move |_| {
-        let _ = loginfn();
+        let res = loginfn(username.value(), password.value());
+
+        println!("{:?}", res);
+
+        // let token = match res {
+        //     Ok(t) => t,
+        //     Err(e) => {
+        //         println!("Error: {}", e);
+        //         return;
+        //     }
+        // };
+
+        // println!("token2: {}", token);
+
         let benutzer = ["Benutzer: ", &username.value()].concat();
         bf.set_label(&benutzer);
 
@@ -190,12 +240,6 @@ fn main() {
         let mut wiz_c = wizard.clone();
         wiz_c.next();
     });
-
-    // win.set_callback(|_| {
-    //     if fltk::app::event() == fltk::enums::Event::Close {
-    //         app::quit(); // Which would close using the close button. You can also assign other keys to close the application
-    //     }
-    // });
 
     win.end();
     win.show();
@@ -242,11 +286,11 @@ fn find_device() -> RawInputManager {
     manager.register_devices(DeviceType::Keyboards);
     let devices = manager.get_device_list();
 
-    println!("Devices: {:?}", devices);
+    // println!("Devices: {:?}", devices);
 
     let keyboards = Arc::new(devices.keyboards);
 
-    println!("Keyboards: {:?}", keyboards);
+    // println!("Keyboards: {:?}", keyboards);
 
     // filter keyboard which contains 'VID_0483&PID_5750', send alert if not found
     let keyboard = keyboards
@@ -258,7 +302,7 @@ fn find_device() -> RawInputManager {
             dialog::alert_default("Barcodescanner nicht gefunden. Bitte anschliessen, einschalten und Programm neu starten");
             std::process::exit(1);
         });
-    println!("Keyboard: {:?}", keyboard);
+    // println!("Keyboard: {:?}", keyboard);
     // gf.set_label(&keyboard.name);
 
     manager.filter_devices(vec![keyboard.name.clone()]);

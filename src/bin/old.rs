@@ -15,22 +15,30 @@ use serde::Deserialize;
 type HWND = *mut std::os::raw::c_void;
 pub static mut WINDOW: HWND = std::ptr::null_mut();
 
+
 #[derive(Deserialize, Debug)]
-struct myjson {
-    jwt: Option<String>,
-    error: Option<Map<String, Value>>
-  }
+struct JWT {
+  jwt: Option<String>,
+  error: Option<Map<String, Value>>,
+  user: Option<User>
+}
+
+#[derive(Deserialize, Debug)]
+struct User {
+  id: i16,
+  rolle: String,
+}
 
 #[tokio::main]
-async fn loginfn(user: String, pass: String) -> Result<(myjson), reqwest::Error> {
+async fn loginfn(user: String, pass: String) -> Result<(JWT), reqwest::Error> {
 
     let client = reqwest::Client::builder().build()?;
 
     let res = client
         .post("http://167.235.59.184:1337/api/auth/local")
         .json(&json!({
-          "identifier": user, //"g.strainovic@gmail.com",
-          "password": pass // "njM3&?HwtCe#GhV"
+          "identifier": user, //"gost", info@strainovic-it.ch
+          "password": pass // "njM3&?HwtCe#GhV" , FBTtJ4nQC44MJir
         }))
         .send()
         .await?;
@@ -181,7 +189,8 @@ fn main() {
         move |_| wiz_c.prev()
     });
 
-    let mut gjwt = String::new();
+    let mut guser  = None;
+    let mut gjwt = None;
 
     login.set_callback(move |_| {
         let res = loginfn(username.value(), password.value());
@@ -190,19 +199,32 @@ fn main() {
         match res {
             Ok(j) => {
               match j {
-                myjson { jwt: Some(jwt), error: None } => {
+                JWT { user, jwt, error: None } => {
+                  guser = user;
                   gjwt = jwt;
                   wizard.next();
                 },
-                myjson { jwt: None, error: Some(err) } => {
+                JWT {user, jwt: None, error: Some(err) } => {
                   println!("Error err: {:?}", err);
                   match err.get_key_value("message") {
                     Some((k, v)) => {
                       let value_s = v.as_str().unwrap();
-                      match value_s == "Invalid identifier or password" {
-                        true => {
-                          println!("Error1: {}", value_s);
+                      match value_s {
+                        "Invalid identifier or password" => {
+                          println!("{}", value_s);
                           dialog::alert_default("Benutzername oder Passwort falsch");
+                        },
+                       "password is a required field" => {
+                          println!("{}", value_s);
+                          dialog::alert_default("Passwort ist ein Pflichtfeld");
+                        },
+                       "username is a required field" => {
+                          println!("{}", value_s);
+                          dialog::alert_default("Benutzer ist ein Pflichtfeld");
+                        },
+                        "2 errors occurred" => {
+                          println!("{}", value_s);
+                          dialog::alert_default("Benutzername und Passwort sind Pflichtfelder");
                         },
                         _ =>  {
                           println!("Error2: {:?}", value_s);
@@ -226,12 +248,14 @@ fn main() {
             }
         }
 
+        println!("User: {:?}", guser);
+        println!("JWT: {:?}", gjwt);
+
         let benutzer = ["Benutzer: ", &username.value()].concat();
         bf.set_label(&benutzer);
+        rf.set_label("Rolle: ");
 
-        rf.set_label("Rolle: - todo");
 
-        println!("JWT: {}", gjwt);
 
         // start looper in new thread
         std::thread::spawn(|| looper());
@@ -239,6 +263,7 @@ fn main() {
 
     win.end();
     win.show();
+    win.activate();
 
     a.run().unwrap();
 }

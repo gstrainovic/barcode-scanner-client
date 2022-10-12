@@ -9,12 +9,7 @@ use fltk::{prelude::*, *};
 use notify_rust::Notification;
 use serde_json::{json, Value, Map};
 use serde::Deserialize;
-
 use fltk_theme::{ThemeType, WidgetTheme};
-use fltk::{prelude::*, *};
-use fltk_theme::{SchemeType, WidgetScheme};
-use fltk::{prelude::*, *};
-use fltk_theme::{widget_themes};
 
 type HWND = *mut std::os::raw::c_void;
 pub static mut WINDOW: HWND = std::ptr::null_mut();
@@ -47,7 +42,7 @@ struct IdAtr {
 }
 
 #[tokio::main]
-async fn write_barcode (barcode : String, user : i16, jwt : &str) -> Result<(BarcodeData), reqwest::Error> {
+async fn write_barcode (barcode : String, user : i16, jwt : &str) -> Result<BarcodeData, reqwest::Error> {
 
     let client = reqwest::Client::builder().build()?;
 
@@ -71,7 +66,7 @@ async fn write_barcode (barcode : String, user : i16, jwt : &str) -> Result<(Bar
 }
 
 #[tokio::main]
-async fn loginfn(user: String, pass: String) -> Result<(JWT), reqwest::Error> {
+async fn loginfn(user: String, pass: String) -> Result<JWT, reqwest::Error> {
 
     let client = reqwest::Client::builder().build()?;
 
@@ -210,7 +205,7 @@ fn main() {
     let mut backb = button::Button::new(320, 150, 150, 30, "Abmelden");
     let mut rf = output::Output::new(150, 200, 150, 30, "Rolle");
 
-    let mut inp = input::Input::default()
+    let inp = input::Input::default()
         .with_label("Barcode:")
         .with_size(320, 30)
         .with_pos(150, 250);
@@ -245,7 +240,7 @@ fn main() {
                   gjwt = jwt.unwrap();
                   wizard.next();
                 },
-                JWT {user, jwt: None, error: Some(err) } => {
+                JWT {user: None, jwt: None, error: Some(err) } => {
                   println!("Error err: {:?}", err);
                   match err.get_key_value("message") {
                     Some((k, v)) => {
@@ -338,19 +333,28 @@ fn create_button(caption: &str) -> button::ReturnButton {
 }
 
 fn process_barcode(i: &mut input::Input, user: i16, jwt: &str) {
-    // set focus to input field
     i.activate();
+
     let barcode = i.value();
+    let resp = write_barcode(i.value(), user, jwt);
 
-    write_barcode(i.value(), user, jwt);
+    match resp {
+      Ok(_) => {
+        println!("Barcode gesendet: {}", barcode);
+        let mut notif = Notification::new();
+        notif.summary("Barcode gesendet:"  );
+        notif.body(&barcode);
+        notif.show().unwrap();
+        i.set_value("");
+      }
+      Err(e) => {
+        println!("Error: {}", e);
+        dialog::alert_default(e.to_string().as_str());
+      }
 
-    // remove value from input
-    println!("Barcode: {}", barcode);
-    let mut notif = Notification::new();
-    notif.summary("Barcode gesendet:"  );
-    notif.body(&barcode);
-    notif.show().unwrap();
-    i.set_value("");
+    }
+
+
 }
 
 fn hide_console_window() {

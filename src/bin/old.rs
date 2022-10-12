@@ -9,7 +9,7 @@ use fltk::{
 use fltk::{prelude::*, *};
 use fltk_theme::{ThemeType, WidgetTheme};
 use notify_rust::Notification;
-use serde_json::json;
+use serde_json::{json, Value, Map};
 use serde::Deserialize;
 
 type HWND = *mut std::os::raw::c_void;
@@ -18,8 +18,8 @@ pub static mut WINDOW: HWND = std::ptr::null_mut();
 #[derive(Deserialize, Debug)]
 struct myjson {
     jwt: Option<String>,
-    error: Option<String>
-}
+    error: Map<String, Value>
+  }
 
 #[tokio::main]
 async fn loginfn(user: String, pass: String) -> Result<(myjson), reqwest::Error> {
@@ -43,35 +43,6 @@ async fn loginfn(user: String, pass: String) -> Result<(myjson), reqwest::Error>
     println!("Body:\n{}", body);
 
     Ok(serde_json::from_str(&body).unwrap())
-
-      // // Parse the response body as Json in this case
-      // let myjson = res
-      //     .json::<myjson>()
-      //     .await?;
-
-      // Ok((myjson))
-
-
-    // let mut token : String;
-    // let mut message : String;
-
-    // match res.status() {
-    //     reqwest::StatusCode::OK => println!(
-    //         token = body["jwt"]
-    //         println!("token: {}", token);
-    //     ),
-    //     status => println!("status: {}", status),
-    //     _ => {
-    //       let error = body["message"][0]["messages"][0]["message"].as_str().unwrap();
-    //       println!("error: {}", error);
-    //       message = error;
-    //       // dialog::alert_default(&message);
-    //       // Err(reqwest::Error::new(reqwest::ErrorKind::Other, error))
-    //     }
-    // }
-
-    // // content-length:Some("0") server:Some("gunicorn/19.9.0")
-    // Ok(())
 }
 
 

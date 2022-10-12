@@ -18,7 +18,7 @@ pub static mut WINDOW: HWND = std::ptr::null_mut();
 #[derive(Deserialize, Debug)]
 struct myjson {
     jwt: Option<String>,
-    error: Map<String, Value>
+    error: Option<Map<String, Value>>
   }
 
 #[tokio::main]
@@ -35,11 +35,7 @@ async fn loginfn(user: String, pass: String) -> Result<(myjson), reqwest::Error>
         .send()
         .await?;
 
-    println!("Status: {}", res.status());
-    println!("Headers:\n{:#?}", res.headers());
-
     let body = res.text().await?;
-
     println!("Body:\n{}", body);
 
     Ok(serde_json::from_str(&body).unwrap())
@@ -70,7 +66,7 @@ fn main() {
         }
     });
 
-    let wizard = group::Wizard::default().with_size(w, h);
+    let mut wizard = group::Wizard::default().with_size(w, h);
 
     let grp1 = group::Group::default().size_of(&wizard);
     let mut pack = Pack::new(15, 45, 150, 450 - 45, "");
@@ -185,31 +181,60 @@ fn main() {
         move |_| wiz_c.prev()
     });
 
+    let mut gjwt = String::new();
+
     login.set_callback(move |_| {
         let res = loginfn(username.value(), password.value());
-
         println!("{:?}", res);
 
-        // let token = match res {
-        //     Ok(t) => t,
-        //     Err(e) => {
-        //         println!("Error: {}", e);
-        //         return;
-        //     }
-        // };
-
-        // println!("token2: {}", token);
+        match res {
+            Ok(j) => {
+              match j {
+                myjson { jwt: Some(jwt), error: None } => {
+                  gjwt = jwt;
+                  wizard.next();
+                },
+                myjson { jwt: None, error: Some(err) } => {
+                  println!("Error err: {:?}", err);
+                  match err.get_key_value("message") {
+                    Some((k, v)) => {
+                      let value_s = v.as_str().unwrap();
+                      match value_s == "Invalid identifier or password" {
+                        true => {
+                          println!("Error1: {}", value_s);
+                          dialog::alert_default("Benutzername oder Passwort falsch");
+                        },
+                        _ =>  {
+                          println!("Error2: {:?}", value_s);
+                          dialog::alert_default(value_s);
+                        }
+                      }
+                      println!("Error: {} {}", k, v);
+                    },
+                    None => {
+                      println!("Error: {:?}", err);
+                    }
+                  }
+                },
+                _ => {
+                  println!("Error j : {:?}", j);
+                }
+              }
+              }
+            Err(e) => {
+                println!("Error e: {}", e);
+            }
+        }
 
         let benutzer = ["Benutzer: ", &username.value()].concat();
         bf.set_label(&benutzer);
 
         rf.set_label("Rolle: - todo");
 
+        println!("JWT: {}", gjwt);
+
         // start looper in new thread
         std::thread::spawn(|| looper());
-
-        let mut wiz_c = wizard.clone();
-        wiz_c.next();
     });
 
     win.end();

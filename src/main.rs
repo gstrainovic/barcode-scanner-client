@@ -89,6 +89,9 @@ fn main() {
     hide_console_window();
     find_device();
 
+  
+
+
     let w = 640;
     let h = 480;
 
@@ -128,6 +131,10 @@ fn main() {
     let mut myimage = image::SvgImage::load("gravurzeile.svg").unwrap();
     myimage.scale(200, 200, true, true);
     frame.set_image(Some(myimage));
+
+    // add icon
+    let image = image::PngImage::load("favicon-32x32.png").unwrap();
+    win.set_icon(Some(image));
 
     let spacer = frame::Frame::default();
 

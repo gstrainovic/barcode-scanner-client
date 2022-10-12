@@ -7,10 +7,15 @@ use fltk::{
     window,
 };
 use fltk::{prelude::*, *};
-use fltk_theme::{ThemeType, WidgetTheme};
 use notify_rust::Notification;
 use serde_json::{json, Value, Map};
 use serde::Deserialize;
+
+use fltk_theme::{ColorTheme, color_themes, ThemeType, WidgetTheme};
+use fltk::{enums::*, prelude::*, *};
+use fltk_theme::{SchemeType, WidgetScheme};
+use fltk::{prelude::*, *};
+use fltk_theme::{widget_themes};
 
 type HWND = *mut std::os::raw::c_void;
 pub static mut WINDOW: HWND = std::ptr::null_mut();
@@ -25,8 +30,46 @@ struct JWT {
 
 #[derive(Deserialize, Debug)]
 struct User {
+  username: String,
   id: i16,
   rolle: String,
+}
+
+
+#[derive(Deserialize, Debug)]
+struct BarcodeData {
+  data: IdAtr
+}
+
+
+#[derive(Deserialize, Debug)]
+struct IdAtr {
+  id: i16,
+  attributes: Map<String, Value>
+}
+
+#[tokio::main]
+async fn write_barcode (barcode : String, user : i16, jwt : &str) -> Result<(BarcodeData), reqwest::Error> {
+
+    let client = reqwest::Client::builder().build()?;
+
+    let res = client
+        .post("http://167.235.59.184:1337/api/barcodes")
+        .header("Authorization", format!("Bearer {}", jwt))
+        .json(&json!({
+          "data": {
+            "barcode": barcode,
+            "users_permissions_user": user
+          }
+        }))
+        .send()
+        .await?;
+
+    let body = res.text().await?;
+    
+    println!("Body:\n{}", body);
+
+    Ok(serde_json::from_str(&body).unwrap())
 }
 
 #[tokio::main]
@@ -49,6 +92,103 @@ async fn loginfn(user: String, pass: String) -> Result<(JWT), reqwest::Error> {
     Ok(serde_json::from_str(&body).unwrap())
 }
 
+fn main_themes() {
+    let a = app::App::default();
+    let theme = WidgetTheme::new(ThemeType::AquaClassic);
+    theme.apply();
+    let mut win = window::Window::default().with_size(400, 300);
+    let mut choice = menu::Choice::new(100, 100, 200, 30, None);
+    choice.add_choice("Classic|Aero|Metro|AquaClassic|Greybird|Blue|HighContrast|Dark");
+    choice.set_value(3);
+    choice.set_frame(widget_themes::OS_PANEL_THIN_UP_BOX);
+    let mut check = button::CheckButton::new(160, 150, 80, 30, "  Check");
+    check.set_value(true);
+    check.set_frame(enums::FrameType::FlatBox);
+    let mut round = button::RoundButton::new(160, 180, 80, 30, "  Round");
+    round.set_value(true);
+    round.set_frame(enums::FrameType::FlatBox);
+    let mut btn = button::Button::new(160, 220, 80, 30, "Hello");
+    btn.set_frame(widget_themes::OS_DEFAULT_BUTTON_UP_BOX);
+    win.end();
+    win.show();
+    choice.set_callback(|c| {
+        let theme = match c.value() {
+            0 => WidgetTheme::new(ThemeType::Classic),
+            1 => WidgetTheme::new(ThemeType::Aero),
+            2 => WidgetTheme::new(ThemeType::Metro),
+            3 => WidgetTheme::new(ThemeType::AquaClassic),
+            4 => WidgetTheme::new(ThemeType::Greybird),
+            5 => WidgetTheme::new(ThemeType::Blue),
+            6 => WidgetTheme::new(ThemeType::HighContrast),
+            7 => WidgetTheme::new(ThemeType::Dark),
+            _ => WidgetTheme::new(ThemeType::Classic),
+        };
+        theme.apply();
+    });
+
+    a.run().unwrap();
+}
+
+fn ccc() {
+    let a = app::App::default().with_scheme(app::Scheme::Gtk);
+    app::set_visible_focus(false);
+
+    let color_theme = ColorTheme::new(color_themes::BLACK_THEME);
+    color_theme.apply();
+    let mut win = window::Window::default().with_size(400, 300);
+    let mut choice = menu::Choice::new(100, 100, 200, 30, None);
+    choice.add_choice("Black|Dark|Gray|Shake|Tan");
+    choice.set_value(0);
+    let mut check = button::CheckButton::new(160, 150, 80, 30, "  Check");
+    check.set_value(true);
+    check.set_frame(enums::FrameType::FlatBox);
+    let mut round = button::RoundButton::new(160, 180, 80, 30, "  Round");
+    round.set_value(true);
+    round.set_frame(enums::FrameType::FlatBox);
+    button::Button::new(160, 220, 80, 30, "Hello");
+    win.end();
+    win.show();
+    choice.set_callback(|c| {
+        let theme = match c.value() {
+            0 => ColorTheme::new(color_themes::BLACK_THEME),
+            1 => ColorTheme::new(color_themes::DARK_THEME),
+            2 => ColorTheme::new(color_themes::GRAY_THEME),
+            3 => ColorTheme::new(color_themes::SHAKE_THEME),
+            4 => ColorTheme::new(color_themes::TAN_THEME),
+            _ => ColorTheme::new(color_themes::BLACK_THEME),
+        };
+        theme.apply();
+    });
+
+    a.run().unwrap();
+}
+
+fn schemes() {
+    let a = app::App::default();
+    let scheme = WidgetScheme::new(SchemeType::Clean);
+    scheme.apply();
+    let mut win = window::Window::default().with_size(400, 300);
+    let mut choice = menu::Choice::new(100, 100, 200, 30, None);
+    choice.add_choice("Clean|Crystal|Gleam");
+    choice.set_value(3);
+    let mut check = button::CheckButton::new(160, 150, 80, 30, "Check");
+    check.set_value(true);
+    let mut round = button::RoundButton::new(160, 180, 80, 30, "Round");
+    round.set_value(true);
+    let mut _btn = button::Button::new(160, 220, 80, 30, "Hello");
+    win.end();
+    win.show();
+    choice.set_callback(|c| {
+        let scheme = match c.value() {
+            0 => WidgetScheme::new(SchemeType::Clean),
+            1 => WidgetScheme::new(SchemeType::Crystal),
+            2 => WidgetScheme::new(SchemeType::Gleam),
+            _ => unimplemented!(),
+        };
+        scheme.apply();
+    });
+    a.run().unwrap();
+}
 
 fn main() {
     hide_console_window();
@@ -57,9 +197,12 @@ fn main() {
     let w = 640;
     let h = 480;
 
-    let a = app::App::default();
-    let widget_theme = WidgetTheme::new(ThemeType::Dark);
-    widget_theme.apply();
+    // let a = app::App::default();
+       let a = app::App::default().with_scheme(app::Scheme::Gleam);
+       app::set_visible_focus(true);
+ 
+      let widget_theme = WidgetTheme::new(ThemeType::Dark);
+      widget_theme.apply();
 
     let mut win = window::Window::default().with_size(w, h);
     win.set_label("BarcodeScanner");
@@ -77,12 +220,8 @@ fn main() {
     let mut wizard = group::Wizard::default().with_size(w, h);
 
     let grp1 = group::Group::default().size_of(&wizard);
-    let mut pack = Pack::new(15, 45, 150, 450 - 45, "");
-    pack.set_spacing(10);
-    pack.end();
 
     let col = group::Flex::default_fill().column();
-
     frame::Frame::default();
 
     let mut mp = group::Flex::default().row();
@@ -164,19 +303,21 @@ fn main() {
 
     grp1.end();
 
-    let mut bf = frame::Frame::new(50, 100, 150, 30, "Benutzer:");
-    let mut rf = frame::Frame::new(50, 150, 150, 30, "Rolle:");
 
     let mut grp2 = group::Group::default().size_of(&wizard);
+
+    let mut bf = output::Output::new(150, 150, 150, 30, "Benutername");
+    let mut backb = button::Button::new(320, 150, 150, 30, "Abmelden");
+    let mut rf = output::Output::new(150, 200, 150, 30, "Rolle");
 
     let mut inp = input::Input::default()
         .with_label("Barcode:")
         .with_size(320, 30)
-        .with_pos(50, 200);
+        .with_pos(150, 250);
     inp.set_trigger(enums::CallbackTrigger::EnterKey);
-    inp.set_callback(|i| process_barcode(i));
 
-    let mut backb = button::Button::new(25, h - 50, 100, 30, "Abmelden");
+    let mut sendenb = button::ReturnButton::new(150, 320, 320, 30, "Senden");
+
 
     grp2.add(&bf);
     grp2.add(&rf);
@@ -190,7 +331,7 @@ fn main() {
     });
 
     let mut guser  = None;
-    let mut gjwt = None;
+    let mut gjwt = String::new();
 
     login.set_callback(move |_| {
         let res = loginfn(username.value(), password.value());
@@ -201,7 +342,7 @@ fn main() {
               match j {
                 JWT { user, jwt, error: None } => {
                   guser = user;
-                  gjwt = jwt;
+                  gjwt = jwt.unwrap();
                   wizard.next();
                 },
                 JWT {user, jwt: None, error: Some(err) } => {
@@ -251,9 +392,28 @@ fn main() {
         println!("User: {:?}", guser);
         println!("JWT: {:?}", gjwt);
 
-        let benutzer = ["Benutzer: ", &username.value()].concat();
-        bf.set_label(&benutzer);
-        rf.set_label("Rolle: ");
+        let username = guser.as_ref().unwrap().username.clone();
+
+        bf.set_value(&username);
+        rf.set_value(guser.as_ref().unwrap().rolle.as_str());
+
+        let user_id = guser.as_ref().unwrap().id;
+
+        let jwt = gjwt.clone();
+
+        inp.set_callback(move |i| { 
+
+
+            // send notification
+            let mut notif = Notification::new();
+            notif.summary("Anmeldung");
+            notif.body(&format!("{} hat sich angemeldet", username));
+            notif.show().unwrap();
+
+            // let iii = user.id.clone();
+
+            process_barcode(i, user_id, &jwt);
+        });
 
 
 
@@ -261,8 +421,11 @@ fn main() {
         std::thread::spawn(|| looper());
     });
 
+
+
     win.end();
     win.show();
+    // win.maximize();
     win.activate();
 
     a.run().unwrap();
@@ -275,10 +438,13 @@ fn create_button(caption: &str) -> button::ReturnButton {
     btn
 }
 
-fn process_barcode(i: &mut input::Input) {
+fn process_barcode(i: &mut input::Input, user: i16, jwt: &str) {
     // set focus to input field
     i.activate();
     let barcode = i.value();
+
+    write_barcode(i.value(), user, jwt);
+
     // remove value from input
     println!("Barcode: {}", barcode);
     let mut notif = Notification::new();

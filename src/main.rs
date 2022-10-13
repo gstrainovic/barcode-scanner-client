@@ -86,8 +86,11 @@ async fn loginfn(user: String, pass: String) -> Result<JWT, reqwest::Error> {
 }
 
 fn main() {
+  
+
     hide_console_window();
     find_device();
+
 
   
 
@@ -246,6 +249,34 @@ fn main() {
                   guser = user;
                   gjwt = jwt.unwrap();
                   wizard.next();
+
+                  println!("User: {:?}", guser);
+
+                  println!("JWT: {:?}", gjwt);
+
+                  let username = guser.as_ref().unwrap().username.clone();
+
+                  bf.set_value(&username);
+                  rf.set_value(guser.as_ref().unwrap().rolle.as_str());
+
+                  let user_id = guser.as_ref().unwrap().id;
+
+                  let jwt = gjwt.clone();
+
+                  let mut inp_c = inp.clone();
+
+                  // send notification
+                  let mut notif = Notification::new();
+                  notif.summary("Anmeldung");
+                  notif.body(&format!("{} hat sich angemeldet", username));
+                  notif.show().unwrap();
+
+                  sendenb.set_callback(move |_| { 
+                      process_barcode(&mut inp_c, user_id, &jwt);
+                  });
+
+                  // start looper in new thread
+                  std::thread::spawn(|| looper());
                 },
                 JWT {user: None, jwt: None, error: Some(err) } => {
                   println!("Error err: {:?}", err);
@@ -288,38 +319,11 @@ fn main() {
               }
             Err(e) => {
                 println!("Error e: {}", e);
+                dialog::alert_default(&e.to_string());
             }
         }
 
-        println!("User: {:?}", guser);
-        println!("JWT: {:?}", gjwt);
 
-        let username = guser.as_ref().unwrap().username.clone();
-
-        bf.set_value(&username);
-        rf.set_value(guser.as_ref().unwrap().rolle.as_str());
-
-        let user_id = guser.as_ref().unwrap().id;
-
-        let jwt = gjwt.clone();
-
-        let mut inp_c = inp.clone();
-
-        // send notification
-        let mut notif = Notification::new();
-        notif.summary("Anmeldung");
-        notif.body(&format!("{} hat sich angemeldet", username));
-        notif.show().unwrap();
-
-        sendenb.set_callback(move |_| { 
-            process_barcode(&mut inp_c, user_id, &jwt);
-        });
-
-
-        
-
-        // start looper in new thread
-        std::thread::spawn(|| looper());
     });
 
 

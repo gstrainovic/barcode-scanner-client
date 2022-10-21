@@ -1,49 +1,49 @@
 use std::sync::Arc;
 
 use flt_rust_demo::{DeviceType, KeyId, RawEvent, RawInputManager, State};
-use fltk::{
-    app, button, group,
-    window,
-};
+use fltk::group::Wizard;
+use fltk::menu::Choice;
+use fltk::{app, button, group, window};
 use fltk::{prelude::*, *};
-use notify_rust::Notification;
-use serde_json::{json, Value, Map};
-use serde::Deserialize;
 use fltk_theme::{ThemeType, WidgetTheme};
+use notify_rust::Notification;
+use serde::Deserialize;
+use serde_json::{json, Map, Value};
 
 type HWND = *mut std::os::raw::c_void;
 pub static mut WINDOW: HWND = std::ptr::null_mut();
 
-
 #[derive(Deserialize, Debug)]
 struct JWT {
-  jwt: Option<String>,
-  error: Option<Map<String, Value>>,
-  user: Option<User>
+    jwt: Option<String>,
+    error: Option<Map<String, Value>>,
+    user: Option<User>,
 }
 
 #[derive(Deserialize, Debug)]
 struct User {
-  username: String,
-  id: i16,
-  rolle: String,
+    username: String,
+    id: i16,
+    rolle: String,
 }
-
 
 #[derive(Deserialize, Debug)]
 struct BarcodeData {
-  data: IdAtr
+    data: IdAtr,
 }
 
 #[derive(Deserialize, Debug)]
 struct IdAtr {
-  id: i16,
-  attributes: Map<String, Value>
+    id: i16,
+    attributes: Map<String, Value>,
 }
 
 #[tokio::main]
-async fn write_barcode (barcode : String, user : i16, jwt : &str) -> Result<BarcodeData, reqwest::Error> {
-
+async fn write_barcode(
+    barcode: String,
+    user: i16,
+    jwt: &str,
+) -> Result<BarcodeData, reqwest::Error> {
     let client = reqwest::Client::builder().build()?;
 
     let res = client
@@ -59,7 +59,7 @@ async fn write_barcode (barcode : String, user : i16, jwt : &str) -> Result<Barc
         .await?;
 
     let body = res.text().await?;
-    
+
     println!("Body:\n{}", body);
 
     Ok(serde_json::from_str(&body).unwrap())
@@ -67,7 +67,6 @@ async fn write_barcode (barcode : String, user : i16, jwt : &str) -> Result<Barc
 
 #[tokio::main]
 async fn loginfn(user: String, pass: String) -> Result<JWT, reqwest::Error> {
-
     let client = reqwest::Client::builder().build()?;
 
     let res = client
@@ -86,24 +85,18 @@ async fn loginfn(user: String, pass: String) -> Result<JWT, reqwest::Error> {
 }
 
 fn main() {
-  
-
     hide_console_window();
-    find_device();
-
-
-  
-
+    // find_device();
 
     let w = 640;
     let h = 480;
 
     // let a = app::App::default();
-       let a = app::App::default().with_scheme(app::Scheme::Gleam);
-       app::set_visible_focus(true);
- 
-      let widget_theme = WidgetTheme::new(ThemeType::Dark);
-      widget_theme.apply();
+    let a = app::App::default().with_scheme(app::Scheme::Gleam);
+    app::set_visible_focus(true);
+
+    let widget_theme = WidgetTheme::new(ThemeType::Dark);
+    widget_theme.apply();
 
     let mut win = window::Window::default().with_size(w, h);
     win.set_label("BarcodeScanner");
@@ -119,6 +112,37 @@ fn main() {
     });
 
     let mut wizard = group::Wizard::default().with_size(w, h);
+
+    let mut manager = RawInputManager::new().unwrap();
+    manager.register_devices(DeviceType::Keyboards);
+    let devices = manager.get_device_list();
+
+    // println!("Devices: {:?}", devices);
+
+    let keyboards = Arc::new(devices.keyboards);
+
+    // User can select a keyboard from a fltk dropdown list
+
+    let grp0 = group::Group::default().size_of(&wizard);
+
+    let mut chce = Choice::new(50, 240, 90, 30, "");
+
+    for keyboard in keyboards.iter() {
+        chce.add_choice(&keyboard.name);
+    }
+
+    // chce.set_callback(move |c| {
+    //     scanner = manager.filter_devices(vec![c.choice().unwrap().to_string()]);
+    // });
+
+    // button next
+    let mut btn = button::ReturnButton::default().with_label("Weiter");
+    btn.set_color(enums::Color::from_rgb(225, 225, 225));
+    btn.set_size(500, 30);
+    btn.set_pos(50, 300);
+
+
+    grp0.end();
 
     let grp1 = group::Group::default().size_of(&wizard);
 
@@ -172,7 +196,6 @@ fn main() {
         prow.end();
     }
 
-
     let pad = frame::Frame::default();
 
     let mut brow = group::Flex::default().row();
@@ -208,21 +231,19 @@ fn main() {
 
     grp1.end();
 
-
     let mut grp2 = group::Group::default().size_of(&wizard);
 
     let mut bf = output::Output::new(150, 150, 150, 30, "Benutername");
     let mut backb = button::Button::new(320, 150, 150, 30, "Abmelden");
     let mut rf = output::Output::new(150, 200, 150, 30, "Rolle");
 
-    let inp = input::Input::default()
+    let mut inp = input::Input::default()
         .with_label("Barcode:")
         .with_size(320, 30)
         .with_pos(150, 250);
     // inp.set_trigger(enums::CallbackTrigger::EnterKey);
 
     let mut sendenb = button::ReturnButton::new(150, 320, 320, 30, "Senden");
-
 
     grp2.add(&bf);
     grp2.add(&rf);
@@ -235,7 +256,13 @@ fn main() {
         move |_| wiz_c.prev()
     });
 
-    let mut guser  = None;
+
+    btn.set_callback({
+        let mut wiz_c = wizard.clone();
+        move |_| wiz_c.next()
+    });
+
+    let mut guser = None;
     let mut gjwt = String::new();
 
     login.set_callback(move |_| {
@@ -244,89 +271,97 @@ fn main() {
 
         match res {
             Ok(j) => {
-              match j {
-                JWT { user, jwt, error: None } => {
-                  guser = user;
-                  gjwt = jwt.unwrap();
-                  wizard.next();
+                match j {
+                    JWT {
+                        user,
+                        jwt,
+                        error: None,
+                    } => {
+                        guser = user;
+                        gjwt = jwt.unwrap();
+                        wizard.next();
 
-                  println!("User: {:?}", guser);
+                        println!("User: {:?}", guser);
 
-                  println!("JWT: {:?}", gjwt);
+                        println!("JWT: {:?}", gjwt);
 
-                  let username = guser.as_ref().unwrap().username.clone();
+                        let username = guser.as_ref().unwrap().username.clone();
 
-                  bf.set_value(&username);
-                  rf.set_value(guser.as_ref().unwrap().rolle.as_str());
+                        bf.set_value(&username);
+                        rf.set_value(guser.as_ref().unwrap().rolle.as_str());
 
-                  let user_id = guser.as_ref().unwrap().id;
+                        let user_id = guser.as_ref().unwrap().id;
 
-                  let jwt = gjwt.clone();
+                        let jwt = gjwt.clone();
 
-                  let mut inp_c = inp.clone();
+                        let mut inp_c = inp.clone();
 
-                  // send notification
-                  let mut notif = Notification::new();
-                  notif.summary("Anmeldung");
-                  notif.body(&format!("{} hat sich angemeldet", username));
-                  notif.show().unwrap();
+                        // send notification
+                        let mut notif = Notification::new();
+                        notif.summary("Anmeldung");
+                        notif.body(&format!("{} hat sich angemeldet", username));
+                        notif.show().unwrap();
 
-                  sendenb.set_callback(move |_| { 
-                      process_barcode(&mut inp_c, user_id, &jwt);
-                  });
+                        sendenb.set_callback(move |_| {
+                            process_barcode(&mut inp_c, user_id, &jwt);
+                        });
 
-                  // start looper in new thread
-                  std::thread::spawn(|| looper());
-                },
-                JWT {user: None, jwt: None, error: Some(err) } => {
-                  println!("Error err: {:?}", err);
-                  match err.get_key_value("message") {
-                    Some((k, v)) => {
-                      let value_s = v.as_str().unwrap();
-                      match value_s {
-                        "Invalid identifier or password" => {
-                          println!("{}", value_s);
-                          dialog::alert_default("Benutzername oder Passwort falsch");
-                        },
-                       "password is a required field" => {
-                          println!("{}", value_s);
-                          dialog::alert_default("Passwort ist ein Pflichtfeld");
-                        },
-                       "username is a required field" => {
-                          println!("{}", value_s);
-                          dialog::alert_default("Benutzer ist ein Pflichtfeld");
-                        },
-                        "2 errors occurred" => {
-                          println!("{}", value_s);
-                          dialog::alert_default("Benutzername und Passwort sind Pflichtfelder");
-                        },
-                        _ =>  {
-                          println!("Error2: {:?}", value_s);
-                          dialog::alert_default(value_s);
-                        }
-                      }
-                      println!("Error: {} {}", k, v);
-                    },
-                    None => {
-                      println!("Error: {:?}", err);
+                        // start looper in new thread
+                        let mut inp_c = inp.clone();
+                        let mut chce_c = chce.clone();
+                        std::thread::spawn(|| looper(inp_c, chce_c));
                     }
-                  }
-                },
-                _ => {
-                  println!("Error j : {:?}", j);
+                    JWT {
+                        user: None,
+                        jwt: None,
+                        error: Some(err),
+                    } => {
+                        println!("Error err: {:?}", err);
+                        match err.get_key_value("message") {
+                            Some((k, v)) => {
+                                let value_s = v.as_str().unwrap();
+                                match value_s {
+                                    "Invalid identifier or password" => {
+                                        println!("{}", value_s);
+                                        dialog::alert_default("Benutzername oder Passwort falsch");
+                                    }
+                                    "password is a required field" => {
+                                        println!("{}", value_s);
+                                        dialog::alert_default("Passwort ist ein Pflichtfeld");
+                                    }
+                                    "username is a required field" => {
+                                        println!("{}", value_s);
+                                        dialog::alert_default("Benutzer ist ein Pflichtfeld");
+                                    }
+                                    "2 errors occurred" => {
+                                        println!("{}", value_s);
+                                        dialog::alert_default(
+                                            "Benutzername und Passwort sind Pflichtfelder",
+                                        );
+                                    }
+                                    _ => {
+                                        println!("Error2: {:?}", value_s);
+                                        dialog::alert_default(value_s);
+                                    }
+                                }
+                                println!("Error: {} {}", k, v);
+                            }
+                            None => {
+                                println!("Error: {:?}", err);
+                            }
+                        }
+                    }
+                    _ => {
+                        println!("Error j : {:?}", j);
+                    }
                 }
-              }
-              }
+            }
             Err(e) => {
                 println!("Error e: {}", e);
                 dialog::alert_default(&e.to_string());
             }
         }
-
-
     });
-
-
 
     win.end();
     win.show();
@@ -350,22 +385,19 @@ fn process_barcode(i: &mut input::Input, user: i16, jwt: &str) {
     let resp = write_barcode(i.value(), user, jwt);
 
     match resp {
-      Ok(_) => {
-        println!("Barcode gesendet: {}", barcode);
-        let mut notif = Notification::new();
-        notif.summary("Barcode gesendet:"  );
-        notif.body(&barcode);
-        notif.show().unwrap();
-        i.set_value("");
-      }
-      Err(e) => {
-        println!("Error: {}", e);
-        dialog::alert_default(e.to_string().as_str());
-      }
-
+        Ok(_) => {
+            println!("Barcode gesendet: {}", barcode);
+            let mut notif = Notification::new();
+            notif.summary("Barcode gesendet:");
+            notif.body(&barcode);
+            notif.show().unwrap();
+            i.set_value("");
+        }
+        Err(e) => {
+            println!("Error: {}", e);
+            dialog::alert_default(e.to_string().as_str());
+        }
     }
-
-
 }
 
 fn hide_console_window() {
@@ -382,38 +414,23 @@ fn hide_console_window() {
     }
 }
 
-fn find_device() -> RawInputManager {
+fn looper(mut inp: input::Input, chce : Choice) {
+
+    println!("Looper started");
+    println!("Choice {}", chce.choice().unwrap().to_string());
+
+    let mut switch_back_hwd = unsafe { winapi::um::winuser::GetForegroundWindow() };
+
     let mut manager = RawInputManager::new().unwrap();
     manager.register_devices(DeviceType::Keyboards);
     let devices = manager.get_device_list();
-
-    // println!("Devices: {:?}", devices);
-
     let keyboards = Arc::new(devices.keyboards);
 
-    // println!("Keyboards: {:?}", keyboards);
-
-    // filter keyboard which contains 'VID_0483&PID_5750', send alert if not found
-    let keyboard = keyboards
-        .iter()
-        .find(|k| k.name.contains("VID_0483&PID_5750"))
-        .unwrap_or_else(|| {
-            // dialog::alert_default("Barcodescanner nicht gefunden, bitte anstecken und einschalte und Programm erneut starten");
-            println!("Keyboard not found");
-            dialog::alert_default("Barcodescanner nicht gefunden. Bitte anschliessen, einschalten und Programm neu starten");
-            std::process::exit(1);
-        });
-    // println!("Keyboard: {:?}", keyboard);
-    // gf.set_label(&keyboard.name);
+    let keyboard = keyboards[chce.value() as usize].clone();
 
     manager.filter_devices(vec![keyboard.name.clone()]);
-    return manager;
-}
+    
 
-fn looper() {
-    let mut manager = find_device();
-
-    let mut switch_back_hwd = unsafe { winapi::um::winuser::GetForegroundWindow() };
 
     loop {
         // handle events
@@ -437,6 +454,7 @@ fn looper() {
                 winapi::um::winuser::ShowWindow(my_windows_hwnd, winapi::um::winuser::SW_MAXIMIZE);
                 winapi::um::winuser::SetForegroundWindow(my_windows_hwnd);
                 winapi::um::winuser::SetActiveWindow(my_windows_hwnd);
+                inp.take_focus();
             }
 
             match event {

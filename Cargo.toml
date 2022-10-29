@@ -1,5 +1,5 @@
 [package]
-name = "flt-rust-demo"
+name = "barcode_scanner"
 version = "0.1.0"
 edition = "2021"
 

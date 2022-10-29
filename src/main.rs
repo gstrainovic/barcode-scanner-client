@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use flt_rust_demo::{DeviceType, KeyId, RawEvent, RawInputManager, State};
+use barcode_scanner::{DeviceType, KeyId, RawEvent, RawInputManager, State};
 use fltk::menu::Choice;
 use fltk::{app, button, group, window};
 use fltk::{prelude::*, *};
@@ -12,7 +12,7 @@ use serde_json::{json, Map, Value};
 type HWND = *mut std::os::raw::c_void;
 pub static mut WINDOW: HWND = std::ptr::null_mut();
 
-fn getUrl() -> String {
+fn get_url() -> String {
     let f = std::fs::File::open("config.yaml").unwrap();
     let data: serde_yaml::Value = serde_yaml::from_reader(f).unwrap();
     data["url"]
@@ -52,7 +52,7 @@ async fn write_barcode(
     user: i16,
     jwt: &str,
 ) -> Result<BarcodeData, reqwest::Error> {
-    let url = getUrl() + "/api/barcodes";
+    let url = get_url() + "/api/barcodes";
 
     let client = reqwest::Client::builder().build()?;
 
@@ -77,7 +77,7 @@ async fn write_barcode(
 
 #[tokio::main]
 async fn loginfn(user: String, pass: String) -> Result<JWT, reqwest::Error> {
-    let url = getUrl() + "/api/auth/local";
+    let url = get_url() + "/api/auth/local";
 
     let client = reqwest::Client::builder().build()?;
 
@@ -167,12 +167,12 @@ fn main() {
 
     // Takes a path
     let mut frame = frame::Frame::default();
-    let mut myimage = image::SvgImage::load("gravurzeile.svg").unwrap();
+    let mut myimage = image::SvgImage::load("gravurzeile-logo.svg").unwrap();
     myimage.scale(200, 200, true, true);
     frame.set_image(Some(myimage));
 
     // add icon
-    let image = image::PngImage::load("favicon-32x32.png").unwrap();
+    let image = image::PngImage::load("gravurzeile-favicon-32x32.png").unwrap();
     win.set_icon(Some(image));
 
     let spacer = frame::Frame::default();

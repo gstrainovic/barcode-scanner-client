@@ -1,7 +1,6 @@
 use std::sync::Arc;
 
 use flt_rust_demo::{DeviceType, KeyId, RawEvent, RawInputManager, State};
-use fltk::group::Wizard;
 use fltk::menu::Choice;
 use fltk::{app, button, group, window};
 use fltk::{prelude::*, *};
@@ -12,6 +11,15 @@ use serde_json::{json, Map, Value};
 
 type HWND = *mut std::os::raw::c_void;
 pub static mut WINDOW: HWND = std::ptr::null_mut();
+
+fn getUrl() -> String {
+    let f = std::fs::File::open("config.yaml").unwrap();
+    let data: serde_yaml::Value = serde_yaml::from_reader(f).unwrap();
+    data["url"]
+        .as_str()
+        .map(|s| s.to_string())
+        .unwrap()
+}
 
 #[derive(Deserialize, Debug)]
 struct JWT {
@@ -44,10 +52,12 @@ async fn write_barcode(
     user: i16,
     jwt: &str,
 ) -> Result<BarcodeData, reqwest::Error> {
+    let url = getUrl() + "/api/barcodes";
+
     let client = reqwest::Client::builder().build()?;
 
     let res = client
-        .post("http://167.235.59.184:1337/api/barcodes")
+        .post(&url)
         .header("Authorization", format!("Bearer {}", jwt))
         .json(&json!({
           "data": {
@@ -67,10 +77,12 @@ async fn write_barcode(
 
 #[tokio::main]
 async fn loginfn(user: String, pass: String) -> Result<JWT, reqwest::Error> {
+    let url = getUrl() + "/api/auth/local";
+
     let client = reqwest::Client::builder().build()?;
 
     let res = client
-        .post("http://167.235.59.184:1337/api/auth/local")
+        .post(&url)
         .json(&json!({
           "identifier": user, //"gost", info@strainovic-it.ch
           "password": pass // "njM3&?HwtCe#GhV" , FBTtJ4nQC44MJir
@@ -86,7 +98,6 @@ async fn loginfn(user: String, pass: String) -> Result<JWT, reqwest::Error> {
 
 fn main() {
     hide_console_window();
-    // find_device();
 
     let w = 640;
     let h = 480;
@@ -125,23 +136,24 @@ fn main() {
 
     let grp0 = group::Group::default().size_of(&wizard);
 
-    let mut chce = Choice::new(50, 240, 90, 30, "");
+    // let col0 = group::Flex::default_fill().column();
+    // frame::Frame::default();
+
+    let mut chce = Choice::default().with_size(200, 30);
+    chce.set_pos(200, 100);
+    chce.set_label("Gerät auswählen");
 
     for keyboard in keyboards.iter() {
         chce.add_choice(&keyboard.name);
     }
 
-    // chce.set_callback(move |c| {
-    //     scanner = manager.filter_devices(vec![c.choice().unwrap().to_string()]);
-    // });
-
-    // button next
+    
     let mut btn = button::ReturnButton::default().with_label("Weiter");
-    btn.set_color(enums::Color::from_rgb(225, 225, 225));
-    btn.set_size(500, 30);
-    btn.set_pos(50, 300);
-
-
+    // btn.set_color(enums::Color::from_rgb(225, 225, 225));
+    btn.set_size(200, 30);
+    btn.set_pos(200, 150);
+    btn.hide();
+    
     grp0.end();
 
     let grp1 = group::Group::default().size_of(&wizard);
@@ -237,7 +249,7 @@ fn main() {
     let mut backb = button::Button::new(320, 150, 150, 30, "Abmelden");
     let mut rf = output::Output::new(150, 200, 150, 30, "Rolle");
 
-    let mut inp = input::Input::default()
+    let inp = input::Input::default()
         .with_label("Barcode:")
         .with_size(320, 30)
         .with_pos(150, 250);
@@ -256,17 +268,34 @@ fn main() {
         move |_| wiz_c.prev()
     });
 
-
     btn.set_callback({
         let mut wiz_c = wizard.clone();
         move |_| wiz_c.next()
     });
 
+    chce.set_callback({
+        // let mut btn_c = btn.clone();
+        move |_| {
+            btn.show();
+        }
+    });
+
+
+
+
     let mut guser = None;
     let mut gjwt = String::new();
 
     login.set_callback(move |_| {
-        let res = loginfn(username.value(), password.value());
+        // transform username to first letter uppercase and rest lowercase
+        let mut uname = username.value();
+        uname = uname.to_lowercase();
+        let mut uname = uname.chars();
+        let first = uname.next().unwrap().to_uppercase();
+        let rest: String = uname.collect();
+        let uname = format!("{}{}", first, rest);
+        println!("Username: {}", uname);
+        let res = loginfn(uname, password.value());
         println!("{:?}", res);
 
         match res {
@@ -307,8 +336,8 @@ fn main() {
                         });
 
                         // start looper in new thread
-                        let mut inp_c = inp.clone();
-                        let mut chce_c = chce.clone();
+                        let inp_c = inp.clone();
+                        let chce_c = chce.clone();
                         std::thread::spawn(|| looper(inp_c, chce_c));
                     }
                     JWT {
@@ -454,7 +483,7 @@ fn looper(mut inp: input::Input, chce : Choice) {
                 winapi::um::winuser::ShowWindow(my_windows_hwnd, winapi::um::winuser::SW_MAXIMIZE);
                 winapi::um::winuser::SetForegroundWindow(my_windows_hwnd);
                 winapi::um::winuser::SetActiveWindow(my_windows_hwnd);
-                inp.take_focus();
+                let _ = inp.take_focus();
             }
 
             match event {

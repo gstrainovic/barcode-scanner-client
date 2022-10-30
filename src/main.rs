@@ -100,22 +100,22 @@ async fn loginfn(user: String, pass: String) -> Result<JWT, reqwest::Error> {
 
 fn update() -> Result<(), Box<dyn (::std::error::Error)>> {
     let status = self_update::backends::github::Update::configure()
-        .repo_owner("jaemk")
-        .repo_name("self_update")
-        .bin_name("github")
+        .repo_owner("gstrainovic")
+        .repo_name("barcode-scanner-client")
+        .bin_name("barcode_scanner.exe")
         .show_download_progress(true)
         .current_version(cargo_crate_version!())
         .build()?
         .update()?;
+        
     println!("Update status: `{}`!", status.version());
     Ok(())
 }
 
 fn main() {
+    
+    update().unwrap();
 
-    // update().unwrap();
-
-  
     hide_console_window();
 
     let my_windows_hwnd = unsafe {

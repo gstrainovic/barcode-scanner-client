@@ -1,6 +1,6 @@
 [package]
 name = "barcode_scanner"
-version = "0.1.0"
+version = "1.0.1"
 edition = "2021"
 
 [dependencies]
@@ -12,6 +12,7 @@ tokio = { version = "1", features = ["full"] }
 serde_json = "1.0.64"
 serde = { version = "1.0.125", features = ["derive"] }
 serde_yaml = "0.9.13"
+self_update = "0.32.0"
 
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "0.3", features = ["wincon", "winuser", "basetsd", "hidpi", "winnt", "libloaderapi", "fileapi", "hidsdi", "handleapi"] }

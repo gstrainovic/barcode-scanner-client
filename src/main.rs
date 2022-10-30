@@ -8,6 +8,7 @@ use fltk_theme::{ThemeType, WidgetTheme};
 use notify_rust::Notification;
 use serde::Deserialize;
 use serde_json::{json, Map, Value};
+use self_update::cargo_crate_version;
 
 type HWND = *mut std::os::raw::c_void;
 pub static mut WINDOW: HWND = std::ptr::null_mut();
@@ -96,7 +97,25 @@ async fn loginfn(user: String, pass: String) -> Result<JWT, reqwest::Error> {
     Ok(serde_json::from_str(&body).unwrap())
 }
 
+
+fn update() -> Result<(), Box<dyn (::std::error::Error)>> {
+    let status = self_update::backends::github::Update::configure()
+        .repo_owner("jaemk")
+        .repo_name("self_update")
+        .bin_name("github")
+        .show_download_progress(true)
+        .current_version(cargo_crate_version!())
+        .build()?
+        .update()?;
+    println!("Update status: `{}`!", status.version());
+    Ok(())
+}
+
 fn main() {
+
+    // update().unwrap();
+
+  
     hide_console_window();
 
     let my_windows_hwnd = unsafe {
@@ -138,8 +157,6 @@ fn main() {
     });
 
 
-
-
     let mut wizard = group::Wizard::default().with_size(w, h);
 
     let mut manager = RawInputManager::new().unwrap();
@@ -155,7 +172,7 @@ fn main() {
     let grp0 = group::Group::default().size_of(&wizard);
     // add version to the top right corner
     let mut version = frame::Frame::default().with_size(100, 20);
-    version.set_label("Version 1.1");
+    version.set_label(&format!("Version {}", cargo_crate_version!()));
     version.set_pos(10, 10);
 
     // let col0 = group::Flex::default_fill().column();

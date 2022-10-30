@@ -84,8 +84,8 @@ async fn loginfn(user: String, pass: String) -> Result<JWT, reqwest::Error> {
     let res = client
         .post(&url)
         .json(&json!({
-          "identifier": user, //"gost", info@strainovic-it.ch
-          "password": pass // "njM3&?HwtCe#GhV" , FBTtJ4nQC44MJir
+          "identifier": user,
+          "password": pass
         }))
         .send()
         .await?;
@@ -99,10 +99,25 @@ async fn loginfn(user: String, pass: String) -> Result<JWT, reqwest::Error> {
 fn main() {
     hide_console_window();
 
-    let w = 640;
-    let h = 480;
+    let my_windows_hwnd = unsafe {
+        winapi::um::winuser::FindWindowA(
+            std::ptr::null(),
+            "BarcodeScanner\0".as_ptr() as *const i8,
+        )
+    };
+    
 
-    // let a = app::App::default();
+    if my_windows_hwnd != std::ptr::null_mut() {
+        let message = "Barcodescanner läuft bereits!";
+        println!("{}", message);
+        dialog::alert_default(message);
+        return;
+    }
+
+
+    let w = 740;
+    let h = 580;
+
     let a = app::App::default().with_scheme(app::Scheme::Gleam);
     app::set_visible_focus(true);
 
@@ -122,6 +137,9 @@ fn main() {
         }
     });
 
+
+
+
     let mut wizard = group::Wizard::default().with_size(w, h);
 
     let mut manager = RawInputManager::new().unwrap();
@@ -135,6 +153,10 @@ fn main() {
     // User can select a keyboard from a fltk dropdown list
 
     let grp0 = group::Group::default().size_of(&wizard);
+    // add version to the top right corner
+    let mut version = frame::Frame::default().with_size(100, 20);
+    version.set_label("Version 1.1");
+    version.set_pos(10, 10);
 
     // let col0 = group::Flex::default_fill().column();
     // frame::Frame::default();
@@ -411,21 +433,27 @@ fn process_barcode(i: &mut input::Input, user: i16, jwt: &str) {
     i.activate();
 
     let barcode = i.value();
-    let resp = write_barcode(i.value(), user, jwt);
 
-    match resp {
-        Ok(_) => {
-            println!("Barcode gesendet: {}", barcode);
-            let mut notif = Notification::new();
-            notif.summary("Barcode gesendet:");
-            notif.body(&barcode);
-            notif.show().unwrap();
-            i.set_value("");
-        }
-        Err(e) => {
-            println!("Error: {}", e);
-            dialog::alert_default(e.to_string().as_str());
-        }
+    if barcode.is_empty() {
+        dialog::alert_default("Barcode ist ein Pflichtfeld");
+        return;
+    } else {
+      let resp = write_barcode(i.value(), user, jwt);
+
+      match resp {
+          Ok(_) => {
+              println!("Barcode gesendet: {}", barcode);
+              let mut notif = Notification::new();
+              notif.summary("Barcode gesendet:");
+              notif.body(&barcode);
+              notif.show().unwrap();
+              i.set_value("");
+          }
+          Err(e) => {
+              println!("Error: {}", e);
+              dialog::alert_default(e.to_string().as_str());
+          }
+      }
     }
 }
 

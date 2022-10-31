@@ -109,8 +109,19 @@ fn update() -> Result<(), Box<dyn (::std::error::Error)>> {
         .build()?
         .update()?;
         
-    println!("Update status: `{}`!", status.version());
-    Ok(())
+    if status.updated() {
+        let message = format!("Aktualisiert zu {}. Bitte barcode_scanner.exe nochmals starten", status.version());
+        println!("{}", message);
+        dialog::alert_default(&message);
+        return Err(Box::new(self_update::errors::Error::Update(
+            message,
+        )));
+    } else {
+        println!("Already up to date");
+        return Ok(())
+    }
+
+    // Ok(())
 }
 
 fn main() {

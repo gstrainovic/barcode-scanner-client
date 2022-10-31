@@ -6,9 +6,9 @@ use fltk::{app, button, group, window};
 use fltk::{prelude::*, *};
 use fltk_theme::{ThemeType, WidgetTheme};
 use notify_rust::Notification;
+use self_update::cargo_crate_version;
 use serde::Deserialize;
 use serde_json::{json, Map, Value};
-use self_update::cargo_crate_version;
 
 type HWND = *mut std::os::raw::c_void;
 pub static mut WINDOW: HWND = std::ptr::null_mut();
@@ -16,10 +16,7 @@ pub static mut WINDOW: HWND = std::ptr::null_mut();
 fn get_url() -> String {
     let f = std::fs::File::open("config.yaml").unwrap();
     let data: serde_yaml::Value = serde_yaml::from_reader(f).unwrap();
-    data["url"]
-        .as_str()
-        .map(|s| s.to_string())
-        .unwrap()
+    data["url"].as_str().map(|s| s.to_string()).unwrap()
 }
 
 #[derive(Deserialize, Debug)]
@@ -97,7 +94,6 @@ async fn loginfn(user: String, pass: String) -> Result<JWT, reqwest::Error> {
     Ok(serde_json::from_str(&body).unwrap())
 }
 
-
 fn update() -> Result<(), Box<dyn (::std::error::Error)>> {
     let status = self_update::backends::github::Update::configure()
         .repo_owner("gstrainovic")
@@ -108,35 +104,32 @@ fn update() -> Result<(), Box<dyn (::std::error::Error)>> {
         .current_version(cargo_crate_version!())
         .build()?
         .update()?;
-        
+
     if status.updated() {
-        let message = format!("Aktualisiert zu {}. Bitte barcode_scanner.exe nochmals starten", status.version());
+        let message = format!(
+            "Aktualisiert zu {}. Bitte barcode_scanner.exe nochmals starten",
+            status.version()
+        );
         println!("{}", message);
         dialog::alert_default(&message);
-        return Err(Box::new(self_update::errors::Error::Update(
-            message,
-        )));
+        return Err(Box::new(self_update::errors::Error::Update(message)));
     } else {
         println!("Already up to date");
-        return Ok(())
+        return Ok(());
     }
 
     // Ok(())
 }
 
 fn main() {
-    
+    // print screen size
+    // println!("{}x{}", app::screen_size().0, app::screen_size().1);
+
     update().unwrap();
 
-    hide_console_window();
-
     let my_windows_hwnd = unsafe {
-        winapi::um::winuser::FindWindowA(
-            std::ptr::null(),
-            "BarcodeScanner\0".as_ptr() as *const i8,
-        )
+        winapi::um::winuser::FindWindowA(std::ptr::null(), "BarcodeScanner\0".as_ptr() as *const i8)
     };
-    
 
     if my_windows_hwnd != std::ptr::null_mut() {
         let message = "Barcodescanner läuft bereits!";
@@ -145,9 +138,8 @@ fn main() {
         return;
     }
 
-
-    let w = 740;
-    let h = 580;
+    let w = 640;
+    let h = 480;
 
     let a = app::App::default().with_scheme(app::Scheme::Gleam);
     app::set_visible_focus(true);
@@ -168,6 +160,16 @@ fn main() {
         }
     });
 
+    win.make_resizable(true);
+
+    let my_windows_hwnd = unsafe {
+        winapi::um::winuser::FindWindowA(std::ptr::null(), "BarcodeScanner\0".as_ptr() as *const i8)
+    };
+
+    // maximize window
+    unsafe {
+        winapi::um::winuser::ShowWindow(my_windows_hwnd, winapi::um::winuser::SW_MAXIMIZE);
+    }
 
     let mut wizard = group::Wizard::default().with_size(w, h);
 
@@ -198,13 +200,12 @@ fn main() {
         chce.add_choice(&keyboard.name);
     }
 
-    
     let mut btn = button::ReturnButton::default().with_label("Weiter");
     // btn.set_color(enums::Color::from_rgb(225, 225, 225));
     btn.set_size(200, 30);
     btn.set_pos(200, 150);
     btn.hide();
-    
+
     grp0.end();
 
     let grp1 = group::Group::default().size_of(&wizard);
@@ -330,9 +331,6 @@ fn main() {
             btn.show();
         }
     });
-
-
-
 
     let mut guser = None;
     let mut gjwt = String::new();
@@ -467,22 +465,22 @@ fn process_barcode(i: &mut input::Input, user: i16, jwt: &str) {
         dialog::alert_default("Barcode ist ein Pflichtfeld");
         return;
     } else {
-      let resp = write_barcode(i.value(), user, jwt);
+        let resp = write_barcode(i.value(), user, jwt);
 
-      match resp {
-          Ok(_) => {
-              println!("Barcode gesendet: {}", barcode);
-              let mut notif = Notification::new();
-              notif.summary("Barcode gesendet:");
-              notif.body(&barcode);
-              notif.show().unwrap();
-              i.set_value("");
-          }
-          Err(e) => {
-              println!("Error: {}", e);
-              dialog::alert_default(e.to_string().as_str());
-          }
-      }
+        match resp {
+            Ok(_) => {
+                println!("Barcode gesendet: {}", barcode);
+                let mut notif = Notification::new();
+                notif.summary("Barcode gesendet:");
+                notif.body(&barcode);
+                notif.show().unwrap();
+                i.set_value("");
+            }
+            Err(e) => {
+                println!("Error: {}", e);
+                dialog::alert_default(e.to_string().as_str());
+            }
+        }
     }
 }
 
@@ -500,8 +498,7 @@ fn hide_console_window() {
     }
 }
 
-fn looper(mut inp: input::Input, chce : Choice) {
-
+fn looper(mut inp: input::Input, chce: Choice) {
     println!("Looper started");
     println!("Choice {}", chce.choice().unwrap().to_string());
 
@@ -515,8 +512,6 @@ fn looper(mut inp: input::Input, chce : Choice) {
     let keyboard = keyboards[chce.value() as usize].clone();
 
     manager.filter_devices(vec![keyboard.name.clone()]);
-    
-
 
     loop {
         // handle events

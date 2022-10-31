@@ -104,6 +104,7 @@ fn update() -> Result<(), Box<dyn (::std::error::Error)>> {
         .repo_name("barcode-scanner-client")
         .bin_name("barcode_scanner.exe")
         .show_download_progress(true)
+        .no_confirm(true)
         .current_version(cargo_crate_version!())
         .build()?
         .update()?;

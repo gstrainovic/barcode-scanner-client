@@ -1,9 +1,12 @@
 use std::sync::Arc;
 
 use barcode_scanner::{DeviceType, KeyId, RawEvent, RawInputManager, State};
+use fltk::app::screen_size;
+use fltk::frame::Frame;
 use fltk::menu::Choice;
 use fltk::{app, button, group, window};
 use fltk::{prelude::*, *};
+use fltk_grid::Grid;
 use fltk_theme::{ThemeType, WidgetTheme};
 use notify_rust::Notification;
 use self_update::cargo_crate_version;
@@ -45,15 +48,30 @@ struct IdAtr {
     attributes: Map<String, Value>,
 }
 
-fn logo_and_version() {
-    let mut logoframe = frame::Frame::default().with_size(200, 100);
-    let mut logosvg = image::SvgImage::load("gravurzeile-logo.svg").unwrap();
-    logosvg.scale(200, 100, true, true);
-    logoframe.set_image(Some(logosvg));
-    logoframe.set_pos(10, 10);
-    let mut version = frame::Frame::default().with_size(100, 20);
-    version.set_label(&format!("Version {}", cargo_crate_version!()));
-    version.set_pos(10, 110);
+fn logo_and_version() -> Grid {
+    fn logo() -> Frame {
+        let mut logo = image::SvgImage::load("gravurzeile-logo.svg").unwrap();
+        let mut logoframe = frame::Frame::default(); //.with_size(200, 100);
+        logo.scale(200, 100, true, true);
+        logoframe.set_image(Some(logo));
+        logoframe
+    }
+
+    fn slogan() -> Frame {
+        return frame::Frame::default().with_label("Einfach persönlich schenken");
+    }
+
+    fn version() -> Frame {
+        return frame::Frame::default().with_label(&format!("Version {}", cargo_crate_version!()));
+    }
+
+    let mut grid = Grid::default_fill();
+    grid.set_layout(24, 3);
+    // widget, row, col, row_span, col_span
+    grid.insert_ext(&mut logo(), 0, 0, 3, 3);
+    grid.insert_ext(&mut slogan(), 3, 0, 3, 1);
+    grid.insert_ext(&mut version(), 5, 0, 3, 1);
+    grid
 }
 
 #[tokio::main]
@@ -140,28 +158,23 @@ fn get_hwnd_of_barcode_scanner() -> *mut HWND__ {
     return my_windows_hwnd;
 }
 
-
-fn main() {
-    hide_console_window();
-    update().unwrap();
-
-    let hwnd_of_barcode_scanner = get_hwnd_of_barcode_scanner();
-
-    if hwnd_of_barcode_scanner != std::ptr::null_mut() {
-        let message = "Barcodescanner läuft bereits!";
-        println!("{}", message);
-        dialog::alert_default(message);
-        return;
+fn device_choice() -> Choice {
+    let mut manager = RawInputManager::new().unwrap();
+    manager.register_devices(DeviceType::Keyboards);
+    let devices = manager.get_device_list();
+    let mut chce = Choice::default(); //.with_size(300, 30);
+                                      // chce.set_pos(120, 150);
+    chce.set_label("Gerät auswählen");
+    let keyboards = Arc::new(devices.keyboards);
+    for keyboard in keyboards.iter() {
+        chce.add_choice(&keyboard.name);
     }
+    chce
+}
 
-    let w = 640;
-    let h = 480;
-
-    let a = app::App::default().with_scheme(app::Scheme::Gleam);
-    app::set_visible_focus(true);
-
-    let widget_theme = WidgetTheme::new(ThemeType::Dark);
-    widget_theme.apply();
+fn win() -> window::Window {
+    let w = screen_size().0 as i32;
+    let h = screen_size().1 as i32;
 
     let mut win = window::Window::default().with_size(w, h);
     win.set_label("BarcodeScanner");
@@ -178,143 +191,138 @@ fn main() {
 
     win.make_resizable(true);
 
-    let my_windows_hwnd = unsafe {
-        winapi::um::winuser::FindWindowA(std::ptr::null(), "BarcodeScanner\0".as_ptr() as *const i8)
-    };
-
-    // maximize window
-    unsafe {
-        winapi::um::winuser::ShowWindow(my_windows_hwnd, winapi::um::winuser::SW_MAXIMIZE);
-    }
-
-    let mut wizard = group::Wizard::default().with_size(w, h);
-
-    let grp0 = group::Group::default().size_of(&wizard);
-    logo_and_version();
-
-    let mut manager = RawInputManager::new().unwrap();
-    manager.register_devices(DeviceType::Keyboards);
-    let devices = manager.get_device_list();
-    let mut chce = Choice::default().with_size(300, 30);
-    chce.set_pos(120, 150);
-    chce.set_label("Gerät auswählen");
-    let keyboards = Arc::new(devices.keyboards);
-    for keyboard in keyboards.iter() {
-        chce.add_choice(&keyboard.name);
-    }
-
-    let mut btn = button::ReturnButton::default().with_label("Weiter");
-    // btn.set_color(enums::Color::from_rgb(225, 225, 225));
-    btn.set_size(410, 30);
-    btn.set_pos(10, 200);
-    btn.hide();
-
-    grp0.end();
-
-    let grp1 = group::Group::default().size_of(&wizard);
-
-    let col = group::Flex::default_fill().column();
-    frame::Frame::default();
-
-    let mut mp = group::Flex::default().row();
-
-    frame::Frame::default();
-
-    // Takes a path
-    let mut frame = frame::Frame::default();
-    let mut myimage = image::SvgImage::load("gravurzeile-logo.svg").unwrap();
-    myimage.scale(200, 200, true, true);
-    frame.set_image(Some(myimage));
-
     // add icon
     let image = image::PngImage::load("gravurzeile-favicon-32x32.png").unwrap();
     win.set_icon(Some(image));
+    win
+}
 
-    let spacer = frame::Frame::default();
+fn group0(wizard: group::Wizard) -> Choice {
+    // group0 start
+    let grp0 = group::Group::default().size_of(&wizard);
 
-    let mut bp = group::Flex::default().column();
+    let mut next_button = button::ReturnButton::default().with_label("Weiter"); //.hide();
+    next_button.hide();
 
-    frame::Frame::default();
-    let mut wf = frame::Frame::default().with_label("Bitte anmelden");
-    wf.set_label_size(20);
+    let mut chce = device_choice();
 
-    let username = input::Input::default();
-    let password = input::SecretInput::default();
+    let mut grid = logo_and_version();
+    grid.insert_ext(&mut chce, 7, 1, 1, 1);
+    grid.insert_ext(&mut next_button, 9, 1, 1, 1);
 
-    let mut urow = group::Flex::default().row();
-    {
-        frame::Frame::default()
-            .with_label("Benutzername:")
-            .with_align(enums::Align::Inside | enums::Align::Right);
+    next_button.set_callback({
+        let mut wiz_c = wizard.clone();
+        move |_| wiz_c.next()
+    });
 
-        urow.set_size(&username, 180);
-        urow.add(&username);
-        urow.end();
-    }
+    chce.set_callback({
+        // let mut btn_c = btn.clone();
+        move |_| {
+            next_button.show();
+        }
+    });
 
-    let mut prow = group::Flex::default().row();
-    {
-        frame::Frame::default()
-            .with_label("Passwort:")
-            .with_align(enums::Align::Inside | enums::Align::Right);
+    grp0.end();
+    chce
+    // group0 end
+}
 
-        prow.set_size(&password, 180);
-        prow.add(&password);
-        prow.end();
-    }
+fn group1(
+    wizard: group::Wizard,
+) -> (
+    button::ReturnButton,
+    input::Input,
+    input::SecretInput,
+) {
+    // group1 start
+    let grp1 = group::Group::default().size_of(&wizard);
 
-    let pad = frame::Frame::default();
+    let mut grid = logo_and_version();
 
-    let mut brow = group::Flex::default().row();
-    frame::Frame::default();
-    let mut login = create_button("Anmelden");
-    brow.set_size(&login, 180);
-    brow.end();
+    let mut please_login_frame = frame::Frame::default().with_label("Bitte anmelden");
+    grid.insert_ext(&mut please_login_frame, 7, 1, 1, 1);
 
-    let b = frame::Frame::default();
+    let mut user_frame = frame::Frame::default()
+        .with_label("Benutzername:")
+        .with_align(enums::Align::Inside | enums::Align::Right);
+    grid.insert_ext(&mut user_frame, 9, 0, 1, 1);
 
-    frame::Frame::default();
+    let mut user_input = input::Input::default();
+    grid.insert_ext(&mut user_input, 9, 1, 1, 1);
 
-    bp.set_size(&wf, 60);
-    bp.set_size(&urow, 30);
-    bp.set_size(&prow, 30);
-    bp.set_size(&pad, 1);
-    bp.set_size(&brow, 30);
-    bp.set_size(&b, 30);
+    let mut pframe = frame::Frame::default()
+        .with_label("Passwort:")
+        .with_align(enums::Align::Inside | enums::Align::Right);
+    grid.insert_ext(&mut pframe, 10, 0, 1, 1);
 
-    bp.end();
+    let mut password = input::SecretInput::default();
+    grid.insert_ext(&mut password, 10, 1, 1, 1);
 
-    frame::Frame::default();
-
-    mp.set_size(&frame, 200);
-    mp.set_size(&spacer, 10);
-    mp.set_size(&bp, 300);
-
-    mp.end();
-
-    frame::Frame::default();
-
-    col.end();
+    // let mut login_button = create_button("Anmelden");
+    let mut login_button = button::ReturnButton::default().with_label("Anmelden");
+    grid.insert_ext(&mut login_button, 12, 1, 1, 1);
 
     grp1.end();
 
-    let mut grp2 = group::Group::default().size_of(&wizard);
+    (login_button, user_input, password)
+}
 
-    let mut bf = output::Output::new(150, 150, 150, 30, "Benutername");
-    let mut backb = button::Button::new(320, 150, 150, 30, "Abmelden");
-    let mut rf = output::Output::new(150, 200, 150, 30, "Rolle");
 
-    let inp = input::Input::default()
-        .with_label("Barcode:")
-        .with_size(320, 30)
-        .with_pos(150, 250);
-    // inp.set_trigger(enums::CallbackTrigger::EnterKey);
+fn group2(
+    wizard: group::Wizard,
+// ) -> (group::Group, button::Button, output::Output, output::Output, input::Input, button::ReturnButton) {
+) -> (button::Button, output::Output, output::Output, input::Input, button::ReturnButton) {
+    let grp2 = group::Group::default().size_of(&wizard);
 
-    let mut sendenb = button::ReturnButton::new(150, 320, 320, 30, "Senden");
+    let mut grid = logo_and_version();
 
-    grp2.add(&bf);
-    grp2.add(&rf);
+    let mut bf = output::Output::default().with_label("Benutername");
+    grid.insert_ext(&mut bf, 7, 1, 1, 1);
+
+    let mut rf = output::Output::default().with_label("Rolle");
+    grid.insert_ext(&mut rf, 8, 1, 1, 1);
+
+    let mut backb = button::Button::default().with_label("Abmelden");
+    grid.insert_ext(&mut backb,10, 1, 1, 1);
+
+    let mut inp = input::Input::default().with_label("Barcode:");
+    grid.insert_ext(&mut inp, 12, 1, 1, 1);
+
+    let mut sendenb = button::ReturnButton::default().with_label("Senden");
+    grid.insert_ext(&mut sendenb, 14, 1, 1, 2);
+
     grp2.end();
+
+    (backb, bf, rf, inp, sendenb)
+}
+fn main() {
+    hide_console_window();
+    update().unwrap();
+
+    let hwnd_of_barcode_scanner = get_hwnd_of_barcode_scanner();
+
+    if hwnd_of_barcode_scanner != std::ptr::null_mut() {
+        let message = "Barcodescanner läuft bereits!";
+        println!("{}", message);
+        dialog::alert_default(message);
+        return;
+    }
+
+    let a = app::App::default().with_scheme(app::Scheme::Gleam);
+    app::set_visible_focus(true);
+
+    let widget_theme = WidgetTheme::new(ThemeType::Dark);
+    widget_theme.apply();
+
+    let mut win = win();
+
+    let mut wizard = group::Wizard::default().with_size(win.width(), win.height());
+
+    let chce = group0(wizard.clone());
+
+    let (mut login_button, user_input, password) = group1(wizard.clone());
+
+    let (mut backb, mut bf, mut rf, inp, mut sendenb) = group2(wizard.clone());
 
     wizard.end();
 
@@ -323,24 +331,12 @@ fn main() {
         move |_| wiz_c.prev()
     });
 
-    btn.set_callback({
-        let mut wiz_c = wizard.clone();
-        move |_| wiz_c.next()
-    });
-
-    chce.set_callback({
-        // let mut btn_c = btn.clone();
-        move |_| {
-            btn.show();
-        }
-    });
-
     let mut guser = None;
     let mut gjwt = String::new();
 
-    login.set_callback(move |_| {
+    login_button.set_callback(move |_| {
         // transform username to first letter uppercase and rest lowercase
-        let mut uname = username.value();
+        let mut uname = user_input.value();
         uname = uname.to_lowercase();
         let mut uname = uname.chars();
         let first = uname.next().unwrap().to_uppercase();
@@ -449,15 +445,22 @@ fn main() {
     // win.maximize();
     win.activate();
 
+    unsafe {
+        winapi::um::winuser::ShowWindow(hwnd_of_barcode_scanner, winapi::um::winuser::SW_MAXIMIZE);
+        winapi::um::winuser::SetForegroundWindow(hwnd_of_barcode_scanner);
+        winapi::um::winuser::SetActiveWindow(hwnd_of_barcode_scanner);
+        // let _ = inp.take_focus();
+    }
+
     a.run().unwrap();
 }
 
-fn create_button(caption: &str) -> button::ReturnButton {
-    let mut btn = button::ReturnButton::default().with_label(caption);
-    btn.set_color(enums::Color::from_rgb(225, 225, 225));
-    btn.set_size(500, 30);
-    btn
-}
+// fn create_button(caption: &str) -> button::ReturnButton {
+//     let mut btn = button::ReturnButton::default().with_label(caption);
+//     btn.set_color(enums::Color::from_rgb(225, 225, 225));
+//     btn.set_size(500, 30);
+//     btn
+// }
 
 fn process_barcode(i: &mut input::Input, user: i16, jwt: &str) {
     i.activate();

@@ -9,6 +9,7 @@ use notify_rust::Notification;
 use self_update::cargo_crate_version;
 use serde::Deserialize;
 use serde_json::{json, Map, Value};
+use winapi::shared::windef::HWND__;
 
 type HWND = *mut std::os::raw::c_void;
 pub static mut WINDOW: HWND = std::ptr::null_mut();
@@ -42,6 +43,17 @@ struct BarcodeData {
 struct IdAtr {
     id: i16,
     attributes: Map<String, Value>,
+}
+
+fn logo_and_version() {
+    let mut logoframe = frame::Frame::default().with_size(200, 100);
+    let mut logosvg = image::SvgImage::load("gravurzeile-logo.svg").unwrap();
+    logosvg.scale(200, 100, true, true);
+    logoframe.set_image(Some(logosvg));
+    logoframe.set_pos(10, 10);
+    let mut version = frame::Frame::default().with_size(100, 20);
+    version.set_label(&format!("Version {}", cargo_crate_version!()));
+    version.set_pos(10, 110);
 }
 
 #[tokio::main]
@@ -121,17 +133,21 @@ fn update() -> Result<(), Box<dyn (::std::error::Error)>> {
     // Ok(())
 }
 
-fn main() {
-    // print screen size
-    // println!("{}x{}", app::screen_size().0, app::screen_size().1);
-
-    update().unwrap();
-
+fn get_hwnd_of_barcode_scanner() -> *mut HWND__ {
     let my_windows_hwnd = unsafe {
         winapi::um::winuser::FindWindowA(std::ptr::null(), "BarcodeScanner\0".as_ptr() as *const i8)
     };
+    return my_windows_hwnd;
+}
 
-    if my_windows_hwnd != std::ptr::null_mut() {
+
+fn main() {
+    hide_console_window();
+    update().unwrap();
+
+    let hwnd_of_barcode_scanner = get_hwnd_of_barcode_scanner();
+
+    if hwnd_of_barcode_scanner != std::ptr::null_mut() {
         let message = "Barcodescanner läuft bereits!";
         println!("{}", message);
         dialog::alert_default(message);
@@ -173,37 +189,24 @@ fn main() {
 
     let mut wizard = group::Wizard::default().with_size(w, h);
 
+    let grp0 = group::Group::default().size_of(&wizard);
+    logo_and_version();
+
     let mut manager = RawInputManager::new().unwrap();
     manager.register_devices(DeviceType::Keyboards);
     let devices = manager.get_device_list();
-
-    // println!("Devices: {:?}", devices);
-
-    let keyboards = Arc::new(devices.keyboards);
-
-    // User can select a keyboard from a fltk dropdown list
-
-    let grp0 = group::Group::default().size_of(&wizard);
-    // add version to the top right corner
-    let mut version = frame::Frame::default().with_size(100, 20);
-    version.set_label(&format!("Version {}", cargo_crate_version!()));
-    version.set_pos(10, 10);
-
-    // let col0 = group::Flex::default_fill().column();
-    // frame::Frame::default();
-
-    let mut chce = Choice::default().with_size(200, 30);
-    chce.set_pos(200, 100);
+    let mut chce = Choice::default().with_size(300, 30);
+    chce.set_pos(120, 150);
     chce.set_label("Gerät auswählen");
-
+    let keyboards = Arc::new(devices.keyboards);
     for keyboard in keyboards.iter() {
         chce.add_choice(&keyboard.name);
     }
 
     let mut btn = button::ReturnButton::default().with_label("Weiter");
     // btn.set_color(enums::Color::from_rgb(225, 225, 225));
-    btn.set_size(200, 30);
-    btn.set_pos(200, 150);
+    btn.set_size(410, 30);
+    btn.set_pos(10, 200);
     btn.hide();
 
     grp0.end();

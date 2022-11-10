@@ -1,3 +1,5 @@
+const STRAPI_URL : &str = "http://146.190.19.207:1337";
+
 use std::sync::Arc;
 
 use barcode_scanner::{DeviceType, KeyId, RawEvent, RawInputManager, State};
@@ -16,12 +18,6 @@ use winapi::shared::windef::HWND__;
 
 type HWND = *mut std::os::raw::c_void;
 pub static mut WINDOW: HWND = std::ptr::null_mut();
-
-fn get_url() -> String {
-    let f = std::fs::File::open("config.yaml").unwrap();
-    let data: serde_yaml::Value = serde_yaml::from_reader(f).unwrap();
-    data["url"].as_str().map(|s| s.to_string()).unwrap()
-}
 
 #[derive(Deserialize, Debug)]
 struct JWT {
@@ -80,7 +76,7 @@ async fn write_barcode(
     user: i16,
     jwt: &str,
 ) -> Result<BarcodeData, reqwest::Error> {
-    let url = get_url() + "/api/barcodes";
+    let url = format!("{}{}", STRAPI_URL, "/api/barcodes");
 
     let client = reqwest::Client::builder().build()?;
 
@@ -103,9 +99,10 @@ async fn write_barcode(
     Ok(serde_json::from_str(&body).unwrap())
 }
 
+
 #[tokio::main]
 async fn loginfn(user: String, pass: String) -> Result<JWT, reqwest::Error> {
-    let url = get_url() + "/api/auth/local";
+    let url = format!("{}{}" , STRAPI_URL , "/api/auth/local");
 
     let client = reqwest::Client::builder().build()?;
 
@@ -304,6 +301,8 @@ fn group2(
 
 
 fn main() {
+    // print STRAPI_URL
+    println!("STRAPI_URL: {}", STRAPI_URL);
     hide_console_window();
     update().unwrap();
 

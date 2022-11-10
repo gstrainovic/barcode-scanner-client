@@ -197,6 +197,8 @@ fn win() -> window::Window {
     win
 }
 
+
+
 fn group0(wizard: group::Wizard) -> Choice {
     // group0 start
     let grp0 = group::Group::default().size_of(&wizard);
@@ -295,6 +297,12 @@ fn group2(
 
     (backb, bf, rf, inp, sendenb)
 }
+
+// sample barcodes
+// ups express
+// pass 
+
+
 fn main() {
     hide_console_window();
     update().unwrap();

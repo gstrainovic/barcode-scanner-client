@@ -488,20 +488,33 @@ fn main() {
 
 fn process_barcode(i: &mut input::Input, user: i16, jwt: &str) {
     i.activate();
-
     let barcode = i.value();
     i.set_value("");
 
     let barcode_lower = barcode.to_lowercase();
+
+    // ups express like
+    // 42096242 // len 8
+    if barcode_lower.len() < 9 {
+        Notification::new()
+            .summary(&format!(
+                "Barcode Scanner: {} ist zu kurz, nicht gesendet",
+                barcode
+            ))
+            .show()
+            .unwrap();
+        return;
+    }
+
     let f = barcode_lower.chars().nth(0).unwrap();
     let s = barcode_lower.chars().nth(1).unwrap();
-    let apostrophe = barcode_lower.chars().nth(14).unwrap();
 
-
-    // DHL Leitcode like 
+    // DHL Leitcode like
     // ¨C140327619348`99000900190051
     // ¨C140327628203`99000900033018
-    if f == '¨' && s == 'c' && apostrophe == '`' {
+    if barcode_lower.len() > 13 {
+        let apostrophe = barcode_lower.chars().nth(14).unwrap();
+        if f == '¨' && s == 'c' && apostrophe == '`' {
             Notification::new()
                 .summary(&format!(
                     "Barcode Scanner: {} als DHL Leitcode erkannt, nicht gesendet",
@@ -510,52 +523,36 @@ fn process_barcode(i: &mut input::Input, user: i16, jwt: &str) {
                 .show()
                 .unwrap();
             return;
+        }
     }
-    
-    match barcode_lower.clone() {
-        // ups express like 
-        // 42096242 // len 8
-        b if b.len() < 9 => { 
+
+    let barcode_c = barcode.clone();
+
+    let res = false;
+
+    match res {
+        true => {
             Notification::new()
                 .summary(&format!(
-                    "Barcode Scanner: {} ist zu kurz, nicht gesendet",
+                    "Barcode Scanner: {} existiert bereits, nicht gesendet",
                     barcode
                 ))
                 .show()
                 .unwrap();
             return;
         }
-
-        _ => {
-            let barcode_c = barcode.clone();
-
-            let res = false;
-
-            match res {
-                true => {
-                    Notification::new()
-                        .summary(&format!(
-                            "Barcode Scanner: {} existiert bereits, nicht gesendet",
-                            barcode
-                        ))
-                        .show()
-                        .unwrap();
-                    return;
-                }
-                false => match write_barcode(barcode, user, jwt) {
-                    Ok(_) => {
-                        Notification::new()
-                            .summary(&format!("Barcode Scanner: {} gesendet", barcode_c))
-                            .show()
-                            .unwrap();
-                    }
-                    Err(e) => {
-                        println!("Error: {}", e);
-                        dialog::alert_default(e.to_string().as_str());
-                    }
-                },
+        false => match write_barcode(barcode, user, jwt) {
+            Ok(_) => {
+                Notification::new()
+                    .summary(&format!("Barcode Scanner: {} gesendet", barcode_c))
+                    .show()
+                    .unwrap();
             }
-        }
+            Err(e) => {
+                println!("Error: {}", e);
+                dialog::alert_default(e.to_string().as_str());
+            }
+        },
     }
 }
 

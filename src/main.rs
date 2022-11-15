@@ -1,4 +1,4 @@
-const STRAPI_URL : &str = "http://146.190.19.207:1337";
+const STRAPI_URL: &str = "http://146.190.19.207:1337";
 
 use std::sync::Arc;
 
@@ -70,6 +70,18 @@ fn logo_and_version() -> Grid {
     grid
 }
 
+// // function to check, do the barcode allready exists in the database?
+// #[tokio::main]
+// async fn barcode_exists(
+//     barcode: String,
+//     user: i16,
+//     jwt: &str,
+// ) -> Result<BarcodeData, reqwest::Error> {
+
+//   let url = format!("{}api/barcodes/{}", STRAPI_URL, barcode);
+
+// }
+
 #[tokio::main]
 async fn write_barcode(
     barcode: String,
@@ -99,10 +111,9 @@ async fn write_barcode(
     Ok(serde_json::from_str(&body).unwrap())
 }
 
-
 #[tokio::main]
 async fn loginfn(user: String, pass: String) -> Result<JWT, reqwest::Error> {
-    let url = format!("{}{}" , STRAPI_URL , "/api/auth/local");
+    let url = format!("{}{}", STRAPI_URL, "/api/auth/local");
 
     let client = reqwest::Client::builder().build()?;
 
@@ -180,7 +191,7 @@ fn win() -> window::Window {
         println!("{:?}", choice);
         if choice == Some(1) {
             let mut notif = Notification::new();
-            notif.summary("Barcodescanner beendet");
+            notif.summary("Barcode Scanner: Barcodescanner beendet");
             notif.show().unwrap();
             w.hide();
         }
@@ -193,8 +204,6 @@ fn win() -> window::Window {
     win.set_icon(Some(image));
     win
 }
-
-
 
 fn group0(wizard: group::Wizard) -> Choice {
     // group0 start
@@ -226,13 +235,7 @@ fn group0(wizard: group::Wizard) -> Choice {
     // group0 end
 }
 
-fn group1(
-    wizard: group::Wizard,
-) -> (
-    button::ReturnButton,
-    input::Input,
-    input::SecretInput,
-) {
+fn group1(wizard: group::Wizard) -> (button::ReturnButton, input::Input, input::SecretInput) {
     // group1 start
     let grp1 = group::Group::default().size_of(&wizard);
 
@@ -266,11 +269,16 @@ fn group1(
     (login_button, user_input, password)
 }
 
-
 fn group2(
     wizard: group::Wizard,
-// ) -> (group::Group, button::Button, output::Output, output::Output, input::Input, button::ReturnButton) {
-) -> (button::Button, output::Output, output::Output, input::Input, button::ReturnButton) {
+    // ) -> (group::Group, button::Button, output::Output, output::Output, input::Input, button::ReturnButton) {
+) -> (
+    button::Button,
+    output::Output,
+    output::Output,
+    input::Input,
+    button::ReturnButton,
+) {
     let grp2 = group::Group::default().size_of(&wizard);
 
     let mut grid = logo_and_version();
@@ -282,7 +290,7 @@ fn group2(
     grid.insert_ext(&mut rf, 8, 1, 1, 1);
 
     let mut backb = button::Button::default().with_label("Abmelden");
-    grid.insert_ext(&mut backb,10, 1, 1, 1);
+    grid.insert_ext(&mut backb, 10, 1, 1, 1);
 
     let mut inp = input::Input::default().with_label("Barcode:");
     grid.insert_ext(&mut inp, 12, 1, 1, 1);
@@ -294,11 +302,6 @@ fn group2(
 
     (backb, bf, rf, inp, sendenb)
 }
-
-// sample barcodes
-// ups express
-// pass 
-
 
 fn main() {
     // print STRAPI_URL
@@ -380,11 +383,32 @@ fn main() {
 
                         let mut inp_c = inp.clone();
 
-                        // send notification
-                        let mut notif = Notification::new();
-                        notif.summary("Anmeldung");
-                        notif.body(&format!("{} hat sich angemeldet", username));
-                        notif.show().unwrap();
+                        Notification::new()
+                            .summary(&format!(
+                                "Barcode Scanner: {} hat sich angemeldet",
+                                username
+                            ))
+                            .show()
+                            .unwrap();
+
+                        // sendenb.deactivate();
+
+                        // let mut sendenb_c = sendenb.clone();
+
+                        // inp_c.set_trigger(enums::CallbackTrigger::EnterKeyChanged);
+
+                        // inp_c.set_callback(move |_| {
+                        //     let barcode = inp_cc.value();
+                        //     println!("Barcode: {} Len:{}", barcode , barcode.len());
+
+                        //     if barcode.len() < 9 {
+                        //       sendenb_c.deactivate();
+                        //       app::flush();
+                        //     } else {
+                        //       sendenb_c.activate();
+                        //       app::flush();
+                        //     }
+                        // });
 
                         sendenb.set_callback(move |_| {
                             process_barcode(&mut inp_c, user_id, &jwt);
@@ -462,36 +486,74 @@ fn main() {
     a.run().unwrap();
 }
 
-// fn create_button(caption: &str) -> button::ReturnButton {
-//     let mut btn = button::ReturnButton::default().with_label(caption);
-//     btn.set_color(enums::Color::from_rgb(225, 225, 225));
-//     btn.set_size(500, 30);
-//     btn
-// }
-
 fn process_barcode(i: &mut input::Input, user: i16, jwt: &str) {
     i.activate();
 
     let barcode = i.value();
+    i.set_value("");
 
-    if barcode.is_empty() {
-        dialog::alert_default("Barcode ist ein Pflichtfeld");
-        return;
-    } else {
-        let resp = write_barcode(i.value(), user, jwt);
+    let barcode_lower = barcode.to_lowercase();
+    let f = barcode_lower.chars().nth(0).unwrap();
+    let s = barcode_lower.chars().nth(1).unwrap();
+    let apostrophe = barcode_lower.chars().nth(14).unwrap();
 
-        match resp {
-            Ok(_) => {
-                println!("Barcode gesendet: {}", barcode);
-                let mut notif = Notification::new();
-                notif.summary("Barcode gesendet:");
-                notif.body(&barcode);
-                notif.show().unwrap();
-                i.set_value("");
-            }
-            Err(e) => {
-                println!("Error: {}", e);
-                dialog::alert_default(e.to_string().as_str());
+
+    // DHL Leitcode like 
+    // ¨C140327619348`99000900190051
+    // ¨C140327628203`99000900033018
+    if f == '¨' && s == 'c' && apostrophe == '`' {
+            Notification::new()
+                .summary(&format!(
+                    "Barcode Scanner: {} als DHL Leitcode erkannt, nicht gesendet",
+                    barcode
+                ))
+                .show()
+                .unwrap();
+            return;
+    }
+    
+    match barcode_lower.clone() {
+        // ups express like 
+        // 42096242 // len 8
+        b if b.len() < 9 => { 
+            Notification::new()
+                .summary(&format!(
+                    "Barcode Scanner: {} ist zu kurz, nicht gesendet",
+                    barcode
+                ))
+                .show()
+                .unwrap();
+            return;
+        }
+
+        _ => {
+            let barcode_c = barcode.clone();
+
+            let res = false;
+
+            match res {
+                true => {
+                    Notification::new()
+                        .summary(&format!(
+                            "Barcode Scanner: {} existiert bereits, nicht gesendet",
+                            barcode
+                        ))
+                        .show()
+                        .unwrap();
+                    return;
+                }
+                false => match write_barcode(barcode, user, jwt) {
+                    Ok(_) => {
+                        Notification::new()
+                            .summary(&format!("Barcode Scanner: {} gesendet", barcode_c))
+                            .show()
+                            .unwrap();
+                    }
+                    Err(e) => {
+                        println!("Error: {}", e);
+                        dialog::alert_default(e.to_string().as_str());
+                    }
+                },
             }
         }
     }

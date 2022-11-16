@@ -1,5 +1,17 @@
 const STRAPI_URL: &str = "http://146.190.19.207:1337";
 
+const BARCODE_MANGELWARE: &str = "0101050";
+const BARCODE_AUSSCHUSS: &str = "0101040";
+
+
+
+struct ControlBarcodesStruct {
+    name: String,
+    barcode: String,
+}
+
+
+
 use std::sync::Arc;
 
 use barcode_scanner::{DeviceType, KeyId, RawEvent, RawInputManager, State};
@@ -486,20 +498,45 @@ fn main() {
     a.run().unwrap();
 }
 
+
+fn send_barcode(barcode: String, user: i16, jwt: &str) {
+  let barcode_c = barcode.clone();
+  match write_barcode(barcode, user, jwt) {
+            Ok(_) => {
+                Notification::new()
+                    .summary(&format!("Barcode Scanner: {} gesendet", barcode_c))
+                    .show()
+                    .unwrap();
+            }
+            Err(e) => {
+                println!("Error: {}", e);
+                dialog::alert_default(e.to_string().as_str());
+            }
+  }
+}
+
 fn process_barcode(i: &mut input::Input, user: i16, jwt: &str) {
     i.activate();
     let barcode = i.value();
+    let barcode_c = barcode.clone();
     i.set_value("");
 
     let barcode_lower = barcode.to_lowercase();
 
+    // if barcode ends with a string from CONTROL_CODES, then send it directly to server
+    if vec![BARCODE_MANGELWARE, BARCODE_AUSSCHUSS].iter().any(|&x| barcode_lower.ends_with(x)) {
+        send_barcode(barcode, user, jwt);
+        return;
+    }
+
     // ups express like
     // 42096242 // len 8
-    if barcode_lower.len() < 9 {
+    // but allow
+    if barcode_lower.len() < 9 && (!barcode_lower.ends_with(BARCODE_AUSSCHUSS) || !barcode_lower.ends_with(BARCODE_MANGELWARE)) {
         Notification::new()
             .summary(&format!(
                 "Barcode Scanner: {} ist zu kurz, nicht gesendet",
-                barcode
+                barcode_c
             ))
             .show()
             .unwrap();
@@ -518,7 +555,7 @@ fn process_barcode(i: &mut input::Input, user: i16, jwt: &str) {
             Notification::new()
                 .summary(&format!(
                     "Barcode Scanner: {} als DHL Leitcode erkannt, nicht gesendet",
-                    barcode
+                    barcode_c
                 ))
                 .show()
                 .unwrap();
@@ -526,33 +563,19 @@ fn process_barcode(i: &mut input::Input, user: i16, jwt: &str) {
         }
     }
 
-    let barcode_c = barcode.clone();
-
-    let res = false;
-
-    match res {
+    let barcode_is_duplicate = false;
+    match barcode_is_duplicate {
         true => {
             Notification::new()
                 .summary(&format!(
                     "Barcode Scanner: {} existiert bereits, nicht gesendet",
-                    barcode
+                    barcode_c
                 ))
                 .show()
                 .unwrap();
             return;
         }
-        false => match write_barcode(barcode, user, jwt) {
-            Ok(_) => {
-                Notification::new()
-                    .summary(&format!("Barcode Scanner: {} gesendet", barcode_c))
-                    .show()
-                    .unwrap();
-            }
-            Err(e) => {
-                println!("Error: {}", e);
-                dialog::alert_default(e.to_string().as_str());
-            }
-        },
+        false => send_barcode(barcode_c, user, jwt)
     }
 }
 

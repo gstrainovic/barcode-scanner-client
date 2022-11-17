@@ -2,15 +2,10 @@ const STRAPI_URL: &str = "http://146.190.19.207:1337";
 
 const BARCODE_MANGELWARE: &str = "0101050";
 const BARCODE_AUSSCHUSS: &str = "0101040";
-
-
-
 struct ControlBarcodesStruct {
     name: String,
     barcode: String,
 }
-
-
 
 use std::sync::Arc;
 
@@ -515,6 +510,9 @@ fn send_barcode(barcode: String, user: i16, jwt: &str) {
   }
 }
 
+// global array for barcode history
+static mut BARCODES: Vec<String> = Vec::new();
+
 fn process_barcode(i: &mut input::Input, user: i16, jwt: &str) {
     i.activate();
     let barcode = i.value();
@@ -528,6 +526,8 @@ fn process_barcode(i: &mut input::Input, user: i16, jwt: &str) {
         send_barcode(barcode, user, jwt);
         return;
     }
+
+
 
     // ups express like
     // 42096242 // len 8
@@ -563,19 +563,22 @@ fn process_barcode(i: &mut input::Input, user: i16, jwt: &str) {
         }
     }
 
-    let barcode_is_duplicate = false;
-    match barcode_is_duplicate {
-        true => {
+
+    // duplicate check
+    unsafe {
+        if !BARCODES.contains(&barcode_lower) {
+            BARCODES.push(barcode_lower.clone());
+            send_barcode(barcode_c, user, jwt)
+        } else {
             Notification::new()
                 .summary(&format!(
-                    "Barcode Scanner: {} existiert bereits, nicht gesendet",
+                    "Barcode Scanner: {} wurde bereits gesendet",
                     barcode_c
                 ))
                 .show()
                 .unwrap();
             return;
         }
-        false => send_barcode(barcode_c, user, jwt)
     }
 }
 

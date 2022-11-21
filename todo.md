@@ -1,12 +1,3 @@
-17.11
----------
-Doppelte Scanns.
-Alle gescannten Etiketten erfasst.
-Wenn die Client Exe geschlossen wieder löschen. 
-
-
-
-
 Fehler
 --------
 Pro Spalte ist nur ein Typ möglich, wenn Dropdown dann nur Dropdown.

@@ -527,8 +527,6 @@ fn process_barcode(i: &mut input::Input, user: i16, jwt: &str) {
         return;
     }
 
-
-
     // ups express like
     // 42096242 // len 8
     // but allow
@@ -549,9 +547,10 @@ fn process_barcode(i: &mut input::Input, user: i16, jwt: &str) {
     // DHL Leitcode like
     // ¨C140327619348`99000900190051
     // ¨C140327628203`99000900033018
+    // 0327642113+99..
     if barcode_lower.len() > 13 {
         let apostrophe = barcode_lower.chars().nth(14).unwrap();
-        if f == '¨' && s == 'c' && apostrophe == '`' {
+        if (f == '¨' && s == 'c' && apostrophe == '`') || barcode_lower.contains('+') {
             Notification::new()
                 .summary(&format!(
                     "Barcode Scanner: {} als DHL Leitcode erkannt, nicht gesendet",

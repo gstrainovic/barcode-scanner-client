@@ -2,6 +2,9 @@ const STRAPI_URL: &str = "http://146.190.19.207:1337";
 
 const BARCODE_MANGELWARE: &str = "0101050";
 const BARCODE_AUSSCHUSS: &str = "0101040";
+const BARCODE_KLEINE_HOLZKISTE: &str = "0101060";
+const BARCODE_GROSSE_HOLZKISTE: &str = "0101070";
+
 struct ControlBarcodesStruct {
     name: String,
     barcode: String,
@@ -522,7 +525,7 @@ fn process_barcode(i: &mut input::Input, user: i16, jwt: &str) {
     let barcode_lower = barcode.to_lowercase();
 
     // if barcode ends with a string from CONTROL_CODES, then send it directly to server
-    if vec![BARCODE_MANGELWARE, BARCODE_AUSSCHUSS].iter().any(|&x| barcode_lower.ends_with(x)) {
+    if vec![BARCODE_MANGELWARE, BARCODE_AUSSCHUSS, BARCODE_GROSSE_HOLZKISTE, BARCODE_KLEINE_HOLZKISTE].iter().any(|&x| barcode_lower.ends_with(x)) {
         send_barcode(barcode, user, jwt);
         return;
     }
@@ -548,6 +551,10 @@ fn process_barcode(i: &mut input::Input, user: i16, jwt: &str) {
     // ¨C140327619348`99000900190051
     // ¨C140327628203`99000900033018
     // 0327642113+99..
+
+    println!("barcode: {} len: {}", barcode_lower, barcode_lower.len());
+    println!("barcode contains: {}", barcode_lower.contains('+'));
+
     if barcode_lower.len() > 13 {
         let apostrophe = barcode_lower.chars().nth(14).unwrap();
         if (f == '¨' && s == 'c' && apostrophe == '`') || barcode_lower.contains('+') {

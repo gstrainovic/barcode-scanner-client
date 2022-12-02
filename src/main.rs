@@ -1,15 +1,5 @@
 const STRAPI_URL: &str = "http://146.190.19.207:1337";
 
-const BARCODE_MANGELWARE: &str = "0101050";
-const BARCODE_AUSSCHUSS: &str = "0101040";
-const BARCODE_KLEINE_HOLZKISTE: &str = "0101060";
-const BARCODE_GROSSE_HOLZKISTE: &str = "0101070";
-
-struct ControlBarcodesStruct {
-    name: String,
-    barcode: String,
-}
-
 use std::sync::Arc;
 
 use barcode_scanner::{DeviceType, KeyId, RawEvent, RawInputManager, State};
@@ -91,6 +81,40 @@ fn logo_and_version() -> Grid {
 //   let url = format!("{}api/barcodes/{}", STRAPI_URL, barcode);
 
 // }
+
+#[derive(Deserialize, Debug)]
+struct Ausnahmen {
+    Barcode: String,
+    Bedeutung: String,
+}
+
+#[derive(Deserialize, Debug)]
+struct AusnahmenData {
+    data: Vec<IdAtrAusnahmen>,
+}
+
+#[derive(Deserialize, Debug)]
+struct IdAtrAusnahmen {
+    id: i16,
+    attributes: Ausnahmen,
+}
+
+// get all exceptions from the database
+#[tokio::main]
+async fn get_ausnahmen(jwt: &str) -> Result<AusnahmenData, reqwest::Error> {
+    let url = format!("{}/api/ausnahmen", STRAPI_URL);
+    let client = reqwest::Client::new();
+
+    let res = client
+        .get(&url)
+        .header("Authorization", format!("Bearer {}", jwt))
+        .send()
+        .await?
+        .json::<AusnahmenData>()
+        .await?;
+    println!("{:?}", res);
+    Ok(res)
+}
 
 #[tokio::main]
 async fn write_barcode(
@@ -314,7 +338,6 @@ fn group2(
 }
 
 fn main() {
-    // print STRAPI_URL
     println!("STRAPI_URL: {}", STRAPI_URL);
     hide_console_window();
     update().unwrap();
@@ -382,6 +405,7 @@ fn main() {
 
                         println!("JWT: {:?}", gjwt);
 
+
                         let username = guser.as_ref().unwrap().username.clone();
 
                         bf.set_value(&username);
@@ -400,25 +424,6 @@ fn main() {
                             ))
                             .show()
                             .unwrap();
-
-                        // sendenb.deactivate();
-
-                        // let mut sendenb_c = sendenb.clone();
-
-                        // inp_c.set_trigger(enums::CallbackTrigger::EnterKeyChanged);
-
-                        // inp_c.set_callback(move |_| {
-                        //     let barcode = inp_cc.value();
-                        //     println!("Barcode: {} Len:{}", barcode , barcode.len());
-
-                        //     if barcode.len() < 9 {
-                        //       sendenb_c.deactivate();
-                        //       app::flush();
-                        //     } else {
-                        //       sendenb_c.activate();
-                        //       app::flush();
-                        //     }
-                        // });
 
                         sendenb.set_callback(move |_| {
                             process_barcode(&mut inp_c, user_id, &jwt);
@@ -496,21 +501,20 @@ fn main() {
     a.run().unwrap();
 }
 
-
 fn send_barcode(barcode: String, user: i16, jwt: &str) {
-  let barcode_c = barcode.clone();
-  match write_barcode(barcode, user, jwt) {
-            Ok(_) => {
-                Notification::new()
-                    .summary(&format!("Barcode Scanner: {} gesendet", barcode_c))
-                    .show()
-                    .unwrap();
-            }
-            Err(e) => {
-                println!("Error: {}", e);
-                dialog::alert_default(e.to_string().as_str());
-            }
-  }
+    let barcode_c = barcode.clone();
+    match write_barcode(barcode, user, jwt) {
+        Ok(_) => {
+            Notification::new()
+                .summary(&format!("Barcode Scanner: {} gesendet", barcode_c))
+                .show()
+                .unwrap();
+        }
+        Err(e) => {
+            println!("Error: {}", e);
+            dialog::alert_default(e.to_string().as_str());
+        }
+    }
 }
 
 // global array for barcode history
@@ -524,16 +528,35 @@ fn process_barcode(i: &mut input::Input, user: i16, jwt: &str) {
 
     let barcode_lower = barcode.to_lowercase();
 
-    // if barcode ends with a string from CONTROL_CODES, then send it directly to server
-    if vec![BARCODE_MANGELWARE, BARCODE_AUSSCHUSS, BARCODE_GROSSE_HOLZKISTE, BARCODE_KLEINE_HOLZKISTE].iter().any(|&x| barcode_lower.ends_with(x)) {
-        send_barcode(barcode, user, jwt);
-        return;
+        // print the ausnahmen
+    let ausnahmen = get_ausnahmen(&jwt);
+    println!("Ausnahmen: {:?}", ausnahmen);
+
+    // get barcodes from ausnahmen
+    // Ausnahmen: Ok(AusnahmenData { data: [IdAtrAusnahmen { id: 1, attributes: Ausnahmen { Barcode: "0101080", Bedeutung: "Kosmische Strahlung" } }, IdAtrAusnahmen { id: 2, attributes: Ausnahmen {
+    // Barcode: "0101090", Bedeutung: "Vulkanausbruch" } }] })
+    let mut barcode_ausnahmen = Vec::new();
+    for ausnahme in ausnahmen.unwrap().data {
+        barcode_ausnahmen.push(ausnahme.attributes.Barcode);
     }
+
+    // print the barcodes
+    println!("Barcodes: {:?}", barcode_ausnahmen);
+
+    // if barcode ends with a string from barcode_ausnahmen, then send it directly to server
+    for barcode_ausnahme in barcode_ausnahmen {
+        if barcode_lower.ends_with(barcode_ausnahme.to_lowercase().as_str()) {
+            send_barcode(barcode_c, user, jwt);
+            return;
+        }
+    }
+
 
     // ups express like
     // 42096242 // len 8
     // but allow
-    if barcode_lower.len() < 9 && (!barcode_lower.ends_with(BARCODE_AUSSCHUSS) || !barcode_lower.ends_with(BARCODE_MANGELWARE)) {
+    if barcode_lower.len() < 9
+    {
         Notification::new()
             .summary(&format!(
                 "Barcode Scanner: {} ist zu kurz, nicht gesendet",
@@ -568,7 +591,6 @@ fn process_barcode(i: &mut input::Input, user: i16, jwt: &str) {
             return;
         }
     }
-
 
     // duplicate check
     unsafe {

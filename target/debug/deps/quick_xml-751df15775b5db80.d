@@ -1,0 +1,12 @@
+C:\Users\mr_g8\barcode-scanner-client\target\debug\deps\quick_xml-751df15775b5db80.rmeta: C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\quick-xml-0.23.1\src\lib.rs C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\quick-xml-0.23.1\src\errors.rs C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\quick-xml-0.23.1\src\escapei.rs C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\quick-xml-0.23.1\src\events\mod.rs C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\quick-xml-0.23.1\src\events\attributes.rs C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\quick-xml-0.23.1\src\reader.rs C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\quick-xml-0.23.1\src\utils.rs C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\quick-xml-0.23.1\src\writer.rs
+
+C:\Users\mr_g8\barcode-scanner-client\target\debug\deps\quick_xml-751df15775b5db80.d: C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\quick-xml-0.23.1\src\lib.rs C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\quick-xml-0.23.1\src\errors.rs C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\quick-xml-0.23.1\src\escapei.rs C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\quick-xml-0.23.1\src\events\mod.rs C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\quick-xml-0.23.1\src\events\attributes.rs C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\quick-xml-0.23.1\src\reader.rs C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\quick-xml-0.23.1\src\utils.rs C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\quick-xml-0.23.1\src\writer.rs
+
+C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\quick-xml-0.23.1\src\lib.rs:
+C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\quick-xml-0.23.1\src\errors.rs:
+C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\quick-xml-0.23.1\src\escapei.rs:
+C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\quick-xml-0.23.1\src\events\mod.rs:
+C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\quick-xml-0.23.1\src\events\attributes.rs:
+C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\quick-xml-0.23.1\src\reader.rs:
+C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\quick-xml-0.23.1\src\utils.rs:
+C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\quick-xml-0.23.1\src\writer.rs:

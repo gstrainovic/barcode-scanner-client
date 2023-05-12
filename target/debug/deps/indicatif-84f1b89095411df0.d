@@ -1,0 +1,13 @@
+C:\Users\mr_g8\barcode-scanner-client\target\debug\deps\indicatif-84f1b89095411df0.rmeta: C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\indicatif-0.17.3\src\lib.rs C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\indicatif-0.17.3\src\draw_target.rs C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\indicatif-0.17.3\src\format.rs C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\indicatif-0.17.3\src\iter.rs C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\indicatif-0.17.3\src\multi.rs C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\indicatif-0.17.3\src\progress_bar.rs C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\indicatif-0.17.3\src\state.rs C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\indicatif-0.17.3\src\style.rs C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\indicatif-0.17.3\src\term_like.rs
+
+C:\Users\mr_g8\barcode-scanner-client\target\debug\deps\indicatif-84f1b89095411df0.d: C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\indicatif-0.17.3\src\lib.rs C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\indicatif-0.17.3\src\draw_target.rs C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\indicatif-0.17.3\src\format.rs C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\indicatif-0.17.3\src\iter.rs C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\indicatif-0.17.3\src\multi.rs C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\indicatif-0.17.3\src\progress_bar.rs C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\indicatif-0.17.3\src\state.rs C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\indicatif-0.17.3\src\style.rs C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\indicatif-0.17.3\src\term_like.rs
+
+C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\indicatif-0.17.3\src\lib.rs:
+C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\indicatif-0.17.3\src\draw_target.rs:
+C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\indicatif-0.17.3\src\format.rs:
+C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\indicatif-0.17.3\src\iter.rs:
+C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\indicatif-0.17.3\src\multi.rs:
+C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\indicatif-0.17.3\src\progress_bar.rs:
+C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\indicatif-0.17.3\src\state.rs:
+C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\indicatif-0.17.3\src\style.rs:
+C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\indicatif-0.17.3\src\term_like.rs:

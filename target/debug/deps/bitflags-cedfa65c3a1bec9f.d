@@ -1,0 +1,12 @@
+C:\Users\mr_g8\barcode-scanner-client\target\debug\deps\bitflags-cedfa65c3a1bec9f.rmeta: C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\bitflags-2.2.1\src\lib.rs C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\bitflags-2.2.1\src\parser.rs C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\bitflags-2.2.1\src\traits.rs C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\bitflags-2.2.1\src\public.rs C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\bitflags-2.2.1\src\internal.rs C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\bitflags-2.2.1\src\external.rs
+
+C:\Users\mr_g8\barcode-scanner-client\target\debug\deps\libbitflags-cedfa65c3a1bec9f.rlib: C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\bitflags-2.2.1\src\lib.rs C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\bitflags-2.2.1\src\parser.rs C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\bitflags-2.2.1\src\traits.rs C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\bitflags-2.2.1\src\public.rs C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\bitflags-2.2.1\src\internal.rs C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\bitflags-2.2.1\src\external.rs
+
+C:\Users\mr_g8\barcode-scanner-client\target\debug\deps\bitflags-cedfa65c3a1bec9f.d: C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\bitflags-2.2.1\src\lib.rs C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\bitflags-2.2.1\src\parser.rs C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\bitflags-2.2.1\src\traits.rs C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\bitflags-2.2.1\src\public.rs C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\bitflags-2.2.1\src\internal.rs C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\bitflags-2.2.1\src\external.rs
+
+C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\bitflags-2.2.1\src\lib.rs:
+C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\bitflags-2.2.1\src\parser.rs:
+C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\bitflags-2.2.1\src\traits.rs:
+C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\bitflags-2.2.1\src\public.rs:
+C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\bitflags-2.2.1\src\internal.rs:
+C:\Users\mr_g8\.cargo\registry\src\github.com-1ecc6299db9ec823\bitflags-2.2.1\src\external.rs:

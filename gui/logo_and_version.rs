@@ -1,4 +1,9 @@
-fn logo_and_version() -> Grid {
+use fltk::{frame::{Frame, self}, image, prelude::{ImageExt, WidgetExt}};
+use fltk_grid::Grid;
+use config::VERSION;
+
+
+pub fn logo_and_version() -> Grid {
     fn logo() -> Frame {
         let mut logo = image::SvgImage::load("gui/gravurzeile-logo.svg").unwrap();
         let mut logoframe = frame::Frame::default(); //.with_size(200, 100);
@@ -12,7 +17,7 @@ fn logo_and_version() -> Grid {
     }
 
     fn version() -> Frame {
-        return frame::Frame::default().with_label(&format!("Version {}", cargo_crate_version!()));
+        return frame::Frame::default().with_label(&format!("Version {}", VERSION));
     }
 
     let mut grid = Grid::default_fill();

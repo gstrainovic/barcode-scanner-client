@@ -2,5 +2,8 @@
 
 members = [
     "gui",
-    "scanner"
+    "scanner",
+    "req",
+    "fun",
+    "config"
 ]

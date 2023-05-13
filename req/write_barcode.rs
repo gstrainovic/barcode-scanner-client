@@ -4,14 +4,14 @@ use config::STRAPI_URL;
 
 #[derive(Deserialize, Debug)]
 pub struct IdAtr {
-    id: i16,
-    attributes: Map<String, Value>,
+    pub id: Value,
+    pub attributes: Map<String, Value>,
 }
 
 
 #[derive(Deserialize, Debug)]
 pub struct BarcodeData {
-    data: IdAtr,
+    pub data: IdAtr,
 }
 
 #[tokio::main]

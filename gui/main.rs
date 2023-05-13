@@ -1,34 +1,18 @@
 use config::STRAPI_URL;
-
-use fun::{
-    process_barcode::process_barcode,
-    looper::looper,
-};
-use req::loginfn::JWT;
-use ::scanner::{DeviceType, KeyId, RawEvent, RawInputManager, State};
-use ::req::{get_ausnahmen::get_ausnahmen, loginfn::loginfn};
-use fltk::app::screen_size;
-use fltk::frame::Frame;
-use fltk::menu::Choice;
-use fltk::{app, button, group, window};
-use fltk::{prelude::*, *};
-use fltk_grid::Grid;
+use fun::{process_barcode::process_barcode,looper::looper,update::update};
+use req::{loginfn::{loginfn,JWT}};
+use fltk::{app, group, dialog, prelude::{WidgetExt, GroupExt, InputExt}};
 use fltk_theme::{ThemeType, WidgetTheme};
 use notify_rust::Notification;
-
-use serde::Deserialize;
-use serde_json::{json, Map, Value};
-use winapi::shared::windef::HWND__;
-use crate::logo_and_version::logo_and_version;
-use crate::group1::group1;
-use crate::group0::group0;
-use crate::group2::group2;
-use crate::hide_console_windows::hide_console_window;
-use crate::get_hwnd_barcode_scanner::get_hwnd_barcode_scanner;
-use crate::win::win;
-use ::fun::update::update;
-use ::fun::send_barcode::send_barcode;
-
+use crate::{
+        logo_and_version::logo_and_version,
+        group1::group1,
+        group0::group0,
+        group2::group2,
+        hide_console_windows::hide_console_window,
+        get_hwnd_barcode_scanner::get_hwnd_barcode_scanner,
+        win::win,
+};
 mod logo_and_version;
 mod group1;
 mod group0;
@@ -36,7 +20,6 @@ mod group2;
 mod hide_console_windows;
 mod get_hwnd_barcode_scanner;
 mod win;
-// mod fun::update;
 
 type HWND = *mut std::os::raw::c_void;
 pub static mut WINDOW: HWND = std::ptr::null_mut();
@@ -78,8 +61,8 @@ fn main() {
         move |_| wiz_c.prev()
     });
 
-    let mut guser = None;
-    let mut gjwt = String::new();
+    // let mut guser = None;
+    // let mut gjwt = String::new();
 
     login_button.set_callback(move |_| {
         // transform username to first letter uppercase and rest lowercase
@@ -101,8 +84,8 @@ fn main() {
                         jwt,
                         error: None,
                     } => {
-                        guser = user;
-                        gjwt = jwt.unwrap();
+                        let guser = user;
+                        let gjwt = jwt.unwrap();
                         wizard.next();
 
                         println!("User: {:?}", guser);

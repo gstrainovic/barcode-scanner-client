@@ -59,14 +59,12 @@ fn main() {
 
     let (mut lager_chc1, mut lager_chc2, mut lager_button_weiter) = group2(wizard.clone(), m1.clone(), m2.clone());
 
-    let (mut backb, mut bf, mut rf, inp, mut sendenb)= group3(wizard.clone(), m1, m2);
+    let (mut backb, mut bf, mut rf, inp, mut sendenb)= group3(wizard.clone(), m1.clone(), m2.clone());
 
     wizard.end();
 
-    backb.set_callback({
-        let mut wiz_c = wizard.clone();
-        move |_| wiz_c.prev()
-    });
+
+
 
     login_button.set_callback(move |_| {
         // transform username to first letter uppercase and rest lowercase
@@ -100,17 +98,21 @@ fn main() {
 
                         println!("Username: {}", username);
                         println!("Rolle: {}", rolle);
+                        let lager_users = get_lager_users(&gjwt).unwrap();
+                        println!("Lager users: {:?}", lager_users);
+                        // add lager users to lager choice1 and lager choice2
+                        for user in lager_users {
+                            lager_chc1.add_choice(&user);
+                            lager_chc2.add_choice(&user);
+                        }
 
                         if rolle == "Lager" {
-                            let lager_users = get_lager_users(&gjwt).unwrap();
-                            println!("Lager users: {:?}", lager_users);
-                            // add lager users to lager choice1 and lager choice2
-                            for user in lager_users {
-                                lager_chc1.add_choice(&user);
-                                lager_chc2.add_choice(&user);
-                            }
                             wizard.next();
                         } else {
+                            m1.set_value((""));
+                            m2.set_value((""));
+                            m1.hide();
+                            m2.hide();
                             wizard.next();
                             wizard.next();
                         }
@@ -192,30 +194,6 @@ fn main() {
             }
         }
     });
-
-    // lager_button_weiter.set_callback(move |_| { // <-- Error: use of moved value: `lager_chc1` value used here after move
-    //     match lager_chc1.clone().choice() {
-    //         Some(x) => {
-    //             m1.set_value(&x);
-    //         }
-    //         None => (),
-    //     }
-    //     match lager_chc2.clone().choice() {
-    //         Some(x) => {
-    //             m2.set_value(&x);
-    //         }
-    //         None => (),
-    //     }
-    //     wizard.next();
-    // });
-
-    //fixed version:
-    // let m1_c = m1.clone();
-    // let m2_c = m2.clone();
-
-
-
-
 
     win.end();
     win.show();

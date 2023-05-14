@@ -42,12 +42,14 @@ pub fn group2(mut wizard: group::Wizard, mut m1: Output, mut m2: Output) -> (Cho
         match lager_choice1_c.choice() {
             Some(x) => {
                 m1.set_value(&x);
+                m1.show();
             }
             None => (),
         }
         match lager_choice2_c.choice() {
             Some(x) => {
                 m2.set_value(&x);
+                m2.show();
             }
             None => (),
         }

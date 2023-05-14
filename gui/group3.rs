@@ -1,4 +1,4 @@
-use fltk::{group, button, output, input, prelude::{WidgetExt, GroupExt}};
+use fltk::{group, button, output, input, prelude::{WidgetExt, GroupExt, InputExt}};
 
 use crate::logo_and_version;
 
@@ -30,7 +30,7 @@ pub fn group3(
     // let mut m2 = output::Output::default().with_label("Mitarbeiter 2");
     grid.insert_ext(&mut m2, 10, 1, 1, 1);
 
-    let mut backb = button::Button::default().with_label("Zurück");
+    let mut backb = button::Button::default().with_label("Abmelden");
     grid.insert_ext(&mut backb, 12, 1, 1, 1);
 
     let mut inp = input::Input::default().with_label("Barcode:");
@@ -40,6 +40,12 @@ pub fn group3(
     grid.insert_ext(&mut sendenb, 16, 1, 1, 1);
 
     grp2.end();
+    
+    backb.set_callback(move |_| { 
+        wizard.clone().prev();
+        wizard.clone().prev();
+        }
+    );
 
     (backb, bf, rf, inp, sendenb)
 }

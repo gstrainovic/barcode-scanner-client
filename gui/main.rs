@@ -57,9 +57,9 @@ fn main() {
 
     let (mut login_button, user_input, password) = group1(wizard.clone());
 
-    let (mut lager_chc1, mut lager_chc2, mut lager_button_weiter) = group2(wizard.clone(), m1.clone(), m2.clone());
+    let (mut lager_chc1, mut lager_chc2) = group2(wizard.clone(), m1.clone(), m2.clone());
 
-    let (mut backb, mut bf, mut rf, inp, mut sendenb)= group3(wizard.clone(), m1.clone(), m2.clone());
+    let (mut bf, mut rf, inp, mut sendenb)= group3(wizard.clone(), m1.clone(), m2.clone());
 
     wizard.end();
 
@@ -109,8 +109,8 @@ fn main() {
                         if rolle == "Lager" {
                             wizard.next();
                         } else {
-                            m1.set_value((""));
-                            m2.set_value((""));
+                            m1.set_value("");
+                            m2.set_value("");
                             m1.hide();
                             m2.hide();
                             wizard.next();

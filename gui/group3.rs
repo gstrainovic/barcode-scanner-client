@@ -1,4 +1,4 @@
-use fltk::{group, button, output, input, prelude::{WidgetExt, GroupExt, InputExt}};
+use fltk::{group, button, output, input, prelude::{WidgetExt, GroupExt}};
 
 use crate::logo_and_version;
 
@@ -8,7 +8,6 @@ pub fn group3(
     mut m2: output::Output,
     // ) -> (group::Group, button::Button, output::Output, output::Output, input::Input, button::ReturnButton) {
 ) -> (
-    button::Button,
     output::Output,
     output::Output,
     input::Input,
@@ -47,5 +46,5 @@ pub fn group3(
         }
     );
 
-    (backb, bf, rf, inp, sendenb)
+    (bf, rf, inp, sendenb)
 }

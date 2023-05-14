@@ -3,7 +3,7 @@ use fltk::{group, prelude::{WidgetExt, GroupExt, MenuExt, InputExt}, button, fra
 
 use crate::logo_and_version::logo_and_version;
 
-pub fn group2(mut wizard: group::Wizard, mut m1: Output, mut m2: Output) -> (Choice, Choice, button::ReturnButton) {
+pub fn group2(mut wizard: group::Wizard, mut m1: Output, mut m2: Output) -> (Choice, Choice) {
     let grp_lager = group::Group::default().size_of(&wizard);
     let mut grid = logo_and_version();
     let mut lager_frame = frame::Frame::default()
@@ -58,7 +58,7 @@ pub fn group2(mut wizard: group::Wizard, mut m1: Output, mut m2: Output) -> (Cho
 
 
 
-    return (lager_choice1, lager_choice2, lager_button_weiter);
+    return (lager_choice1, lager_choice2);
 
 }
 

@@ -1,13 +1,14 @@
 use config::STRAPI_URL;
 use fun::{process_barcode::process_barcode,looper::looper,update::update};
-use req::{loginfn::{loginfn,JWT}};
-use fltk::{app, group, dialog, prelude::{WidgetExt, GroupExt, InputExt}};
+use req::{loginfn::{loginfn,JWT}, get_lager_users::get_lager_users};
+use fltk::{app, group, dialog, prelude::{WidgetExt, GroupExt, InputExt, MenuExt}, output};
 use fltk_theme::{ThemeType, WidgetTheme};
 use notify_rust::Notification;
 use crate::{
         logo_and_version::logo_and_version,
         group0::group0,
         group1::group1,
+        group2::group2,
         group3::group3,
         hide_console_windows::hide_console_window,
         get_hwnd_barcode_scanner::get_hwnd_barcode_scanner,
@@ -16,6 +17,7 @@ use crate::{
 mod logo_and_version;
 mod group0;
 mod group1;
+mod group2;
 mod group3;
 mod hide_console_windows;
 mod get_hwnd_barcode_scanner;
@@ -28,6 +30,9 @@ fn main() {
     println!("STRAPI_URL: {}", STRAPI_URL);
     hide_console_window();
     update().unwrap();
+
+    let mut m1 = output::Output::default().with_label("Mitarbeiter 1");
+    let mut m2 = output::Output::default().with_label("Mitarbeiter 2");
 
     let hwnd_of_barcode_scanner = get_hwnd_barcode_scanner();
 
@@ -52,7 +57,9 @@ fn main() {
 
     let (mut login_button, user_input, password) = group1(wizard.clone());
 
-    let (mut backb, mut bf, mut rf, inp, mut sendenb) = group3(wizard.clone());
+    let (mut lager_chc1, mut lager_chc2, mut lager_button_weiter) = group2(wizard.clone(), m1.clone(), m2.clone());
+
+    let (mut backb, mut bf, mut rf, inp, mut sendenb)= group3(wizard.clone(), m1, m2);
 
     wizard.end();
 
@@ -60,9 +67,6 @@ fn main() {
         let mut wiz_c = wizard.clone();
         move |_| wiz_c.prev()
     });
-
-    // let mut guser = None;
-    // let mut gjwt = String::new();
 
     login_button.set_callback(move |_| {
         // transform username to first letter uppercase and rest lowercase
@@ -86,14 +90,30 @@ fn main() {
                     } => {
                         let guser = user;
                         let gjwt = jwt.unwrap();
-                        wizard.next();
+
 
                         println!("User: {:?}", guser);
-
                         println!("JWT: {:?}", gjwt);
 
-
                         let username = guser.as_ref().unwrap().username.clone();
+                        let rolle = guser.as_ref().unwrap().rolle.clone();
+
+                        println!("Username: {}", username);
+                        println!("Rolle: {}", rolle);
+
+                        if rolle == "Lager" {
+                            let lager_users = get_lager_users(&gjwt).unwrap();
+                            println!("Lager users: {:?}", lager_users);
+                            // add lager users to lager choice1 and lager choice2
+                            for user in lager_users {
+                                lager_chc1.add_choice(&user);
+                                lager_chc2.add_choice(&user);
+                            }
+                            wizard.next();
+                        } else {
+                            wizard.next();
+                            wizard.next();
+                        }
 
                         bf.set_value(&username);
                         rf.set_value(guser.as_ref().unwrap().rolle.as_str());
@@ -172,6 +192,30 @@ fn main() {
             }
         }
     });
+
+    // lager_button_weiter.set_callback(move |_| { // <-- Error: use of moved value: `lager_chc1` value used here after move
+    //     match lager_chc1.clone().choice() {
+    //         Some(x) => {
+    //             m1.set_value(&x);
+    //         }
+    //         None => (),
+    //     }
+    //     match lager_chc2.clone().choice() {
+    //         Some(x) => {
+    //             m2.set_value(&x);
+    //         }
+    //         None => (),
+    //     }
+    //     wizard.next();
+    // });
+
+    //fixed version:
+    // let m1_c = m1.clone();
+    // let m2_c = m2.clone();
+
+
+
+
 
     win.end();
     win.show();

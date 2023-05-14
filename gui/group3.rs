@@ -2,7 +2,7 @@ use fltk::{group, button, output, input, prelude::{WidgetExt, GroupExt}};
 
 use crate::logo_and_version;
 
-pub fn group2(
+pub fn group3(
     wizard: group::Wizard,
     // ) -> (group::Group, button::Button, output::Output, output::Output, input::Input, button::ReturnButton) {
 ) -> (

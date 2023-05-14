@@ -6,17 +6,17 @@ use fltk_theme::{ThemeType, WidgetTheme};
 use notify_rust::Notification;
 use crate::{
         logo_and_version::logo_and_version,
-        group1::group1,
         group0::group0,
-        group2::group2,
+        group1::group1,
+        group3::group3,
         hide_console_windows::hide_console_window,
         get_hwnd_barcode_scanner::get_hwnd_barcode_scanner,
         win::win,
 };
 mod logo_and_version;
-mod group1;
 mod group0;
-mod group2;
+mod group1;
+mod group3;
 mod hide_console_windows;
 mod get_hwnd_barcode_scanner;
 mod win;
@@ -52,7 +52,7 @@ fn main() {
 
     let (mut login_button, user_input, password) = group1(wizard.clone());
 
-    let (mut backb, mut bf, mut rf, inp, mut sendenb) = group2(wizard.clone());
+    let (mut backb, mut bf, mut rf, inp, mut sendenb) = group3(wizard.clone());
 
     wizard.end();
 

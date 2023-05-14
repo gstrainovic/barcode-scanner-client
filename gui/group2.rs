@@ -7,7 +7,7 @@ pub fn group2(mut wizard: group::Wizard, mut m1: Output, mut m2: Output) -> (Cho
     let grp_lager = group::Group::default().size_of(&wizard);
     let mut grid = logo_and_version();
     let mut lager_frame = frame::Frame::default()
-        .with_label("Bitte Mitarbeiter auswählen, die beim Verpacken helfen");
+        .with_label("Wer hilft dir beim Verpacken?");
     grid.insert_ext(&mut lager_frame, 7, 1, 1, 1);
 
     // two choice to select 1-2 colleagues
@@ -53,6 +53,14 @@ pub fn group2(mut wizard: group::Wizard, mut m1: Output, mut m2: Output) -> (Cho
             }
             None => (),
         }
+
+        if m1.value() == m2.value() && m1.value() != "" && m2.value() != "" {
+            let message = "Mitarbeiter 1 und Mitarbeiter 2 dürfen nicht gleich sein!";
+            println!("{}", message);
+            fltk::dialog::alert_default(message);
+            return;
+        }
+
         wizard.next();
     });
 

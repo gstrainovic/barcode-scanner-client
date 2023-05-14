@@ -30,13 +30,13 @@
             "cargo": {
                 "args": [
                     "build",
-                    "--bin=barcode_scanner",
-                    "--package=barcode_scanner"
+                    // "--bin=barcode_scanner",
+                    // "--package=barcode_scanner"
                 ],
-                "filter": {
-                    "name": "barcode_scanner",
-                    "kind": "bin"
-                }
+                // "filter": {
+                //     "name": "barcode_scanner",
+                //     "kind": "bin"
+                // }
             },
             "args": [],
             "cwd": "${workspaceFolder}"

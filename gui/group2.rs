@@ -12,7 +12,6 @@ pub fn group2(
     mut wizard: group::Wizard,
     mut m1: Output,
     mut m2: Output,
-    mut lager_user_choices: Vec<String>,
     mut lager_choice1: Choice,
     mut lager_choice2: Choice,
 ) {
@@ -48,38 +47,50 @@ pub fn group2(
     let lager_choice1_c = lager_choice1.clone();
     let lager_choice2_c = lager_choice2.clone();
     lager_button_weiter.set_callback(move |_| {
-        lager_user_choices.clear();
+        let mut lager_user_choices: Vec<String> = Vec::new();
         match lager_choice1_c.choice() {
             Some(x) => {
-                m1.set_value(&x);
-                m1.show();
-                lager_user_choices.push(x);
+                if x != "-" {
+                    m1.set_value(&x);
+                    m1.show();
+                    lager_user_choices.push(x);
+                } else {
+                    m1.set_value("");
+                    m1.hide();
+                }
             }
-            None => (),
+            None => {
+                m1.set_value("");
+                m1.hide();
+            }
         }
         match lager_choice2_c.choice() {
             Some(x) => {
-                m2.set_value(&x);
-                m2.show();
-                lager_user_choices.push(x);
+                if x != "-" {
+                    m2.set_value(&x);
+                    m2.show();
+                    lager_user_choices.push(x);
+                } else {
+                    m2.set_value("");
+                    m2.hide();
+                }
             }
-            None => (),
+            None => {
+                m2.set_value("");
+                m2.hide();
+            }
         }
 
         if m1.value() == m2.value() && m1.value() != "" && m2.value() != "" {
             let message = "Mitarbeiter 1 und Mitarbeiter 2 dürfen nicht gleich sein!";
             println!("{}", message);
             fltk::dialog::alert_default(message);
-            // lager_user_choices.clear();
-            // m1.set_value("");
-            // m2.set_value("");
             return;
         }
-
         println!("Lager user choices: {:?}", lager_user_choices);
 
         let lager_users = get_lager_users(unsafe { GJWT.clone() }).unwrap();
-
+        unsafe { LAGER_USER_IDS.clear() };
         for lager_user_choice in lager_user_choices.clone() {
             for lager_user in &lager_users {
                 if lager_user_choice == lager_user.username {
@@ -89,8 +100,6 @@ pub fn group2(
                 }
             }
         }
-
-        println!("Lager user choices: {:?}", lager_user_choices);
         unsafe {
             println!("Lager user ids: {:?}", LAGER_USER_IDS);
         }

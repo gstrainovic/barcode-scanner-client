@@ -37,7 +37,6 @@ fn main() {
     hide_console_window();
     update().unwrap();
 
-    let mut lager_user_choices = Vec::new();
     let mut user_id = output::Output::default();
 
     let mut m1 = output::Output::default().with_label("Mitarbeiter 1");
@@ -46,7 +45,9 @@ fn main() {
     let mut bf = output::Output::default().with_label("Benutzername");
     let mut inp = input::Input::default().with_label("Barcode:");
     let mut lager_choice1 = Choice::default();
+    lager_choice1.add_choice("-");
     let mut lager_choice2 = Choice::default();
+    lager_choice2.add_choice("-");
 
     let hwnd_of_barcode_scanner = get_hwnd_barcode_scanner();
 
@@ -85,7 +86,6 @@ fn main() {
         wizard.clone(),
         m1.clone(),
         m2.clone(),
-        lager_user_choices.clone(),
         lager_choice1.clone(),
         lager_choice2.clone(),
     );

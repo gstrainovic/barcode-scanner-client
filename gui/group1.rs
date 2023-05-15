@@ -77,12 +77,18 @@ pub fn group1(
 
                         println!("Username: {}", username);
                         println!("Rolle: {}", rolle);
-                        let lager_users = get_lager_users(gjwt).unwrap();
+                        let lager_users = get_lager_users(gjwt).unwrap()
+                            .into_iter()
+                            .filter(|u| u.username != username)
+                            .collect::<Vec<_>>();
                         println!("Lager users: {:?}", lager_users);
                         for user in lager_users.iter() {
                             lager_choice1.add_choice(&user.username);
                             lager_choice2.add_choice(&user.username);
                         }
+
+                        // add empty choice to lager_choice1 and lager_choice2
+
 
                         if rolle == "Lager" {
                             wizard.next();

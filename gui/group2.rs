@@ -6,7 +6,7 @@ use fltk::{
 };
 use req::{get_lager_users::get_lager_users, loginfn::User};
 
-use crate::logo_and_version::logo_and_version;
+use crate::{logo_and_version::logo_and_version, GLAGER_USER_IDS};
 
 pub fn group2(
     mut wizard: group::Wizard,
@@ -16,7 +16,6 @@ pub fn group2(
     mut gjwt: Output,
     mut lager_choice1: Choice,
     mut lager_choice2: Choice,
-    mut lager_user_ids: Choice,
 ) {
     let grp_lager = group::Group::default().size_of(&wizard);
     let mut grid = logo_and_version();
@@ -79,22 +78,24 @@ pub fn group2(
         }
 
         println!("Lager user choices: {:?}", lager_user_choices);
-        // let mut lager_user_ids = Vec::new();
-
-        // println!("JWT: {}", gjwt);
 
         let lager_users = get_lager_users(gjwt.value()).unwrap();
+
 
         for lager_user_choice in lager_user_choices.clone() {
             for lager_user in &lager_users {
                 if lager_user_choice == lager_user.username {
-                    lager_user_ids.add_choice(&lager_user.id.to_string());
+                    unsafe {
+                        GLAGER_USER_IDS.push(lager_user.id);
+                    }
                 }
             }
         }
 
         println!("Lager user choices: {:?}", lager_user_choices);
-        println!("Lager user ids: {:?}", lager_user_ids);
+        unsafe {
+            println!("Lager user ids: {:?}", GLAGER_USER_IDS);
+        }
 
         wizard.next();
     });

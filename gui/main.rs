@@ -29,6 +29,8 @@ mod win;
 type HWND = *mut std::os::raw::c_void;
 pub static mut WINDOW: HWND = std::ptr::null_mut();
 
+static mut GLAGER_USER_IDS : Vec<i16> = Vec::new();
+
 fn main() {
     println!("STRAPI_URL: {}", STRAPI_URL);
     hide_console_window();
@@ -36,7 +38,7 @@ fn main() {
 
     let mut lager_user_choices = Vec::new();
     let mut user_id = output::Output::default();
-    let mut lager_user_ids = Choice::default();
+
     let mut gjwt: output::Output = output::Output::default();
     let mut m1 = output::Output::default().with_label("Mitarbeiter 1");
     let mut m2 = output::Output::default().with_label("Mitarbeiter 2");
@@ -45,6 +47,8 @@ fn main() {
     let mut inp = input::Input::default().with_label("Barcode:");
     let mut lager_choice1 = Choice::default();
     let mut lager_choice2 = Choice::default();
+
+ 
 
     let hwnd_of_barcode_scanner = get_hwnd_barcode_scanner();
 
@@ -80,27 +84,27 @@ fn main() {
         chce,
         gjwt.clone(),
     );
-    group2(
-        wizard.clone(),
-        m1.clone(),
-        m2.clone(),
-        lager_user_choices.clone(),
-        gjwt.clone(),
-        lager_choice1.clone(),
-        lager_choice2.clone(),
-        lager_user_ids.clone(),
-    );
-    group3(
-        wizard.clone(),
-        m1.clone(),
-        m2.clone(),
-        user_id,
-        lager_user_ids.clone(),
+    unsafe {
+        group2(
+            wizard.clone(),
+            m1.clone(),
+            m2.clone(),
+            lager_user_choices.clone(),
+            gjwt.clone(),
+            lager_choice1.clone(),
+            lager_choice2.clone(),
+        );
+        group3(
+            wizard.clone(),
+            m1.clone(),
+            m2.clone(),
+            user_id,
         rf.clone(),
-        bf.clone(),
-        inp.clone(),
-        gjwt.clone(),
-    );
+            bf.clone(),
+            inp.clone(),
+            gjwt.clone(),
+        );
+    };
 
     wizard.end();
 

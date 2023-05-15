@@ -1,14 +1,13 @@
 use fltk::{group, button, output, input, prelude::{WidgetExt, GroupExt, InputExt, MenuExt}, menu::Choice};
 use fun::process_barcode::process_barcode;
 
-use crate::logo_and_version;
+use crate::{logo_and_version, GLAGER_USER_IDS};
 
 pub fn group3(
     wizard: group::Wizard,
     mut m1: output::Output,
     mut m2: output::Output,
     mut user_id: output::Output,
-    lager_user_ids: Choice,
     mut rf: output::Output,
     mut bf: output::Output,
     mut inp: input::Input,
@@ -49,10 +48,15 @@ pub fn group3(
     );
 
     sendenb.set_callback(move |_| {
-        println!("Lager user ids as choose: {:?}", lager_user_ids);
+        unsafe {
+            println!("Lager user ids as choose: {:?}", GLAGER_USER_IDS);
+        }
         println!("User id: {}", user_id.value());
 
-        process_barcode(&mut inp, user_id.value(), jwt.value(), lager_user_ids_ints);
+        unsafe {
+            process_barcode(&mut inp, user_id.value(), jwt.value(), GLAGER_USER_IDS.clone());
+        }
+
     });
 
 }

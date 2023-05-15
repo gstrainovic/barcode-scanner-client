@@ -16,7 +16,7 @@ pub struct BarcodeData {
 #[tokio::main]
 pub async fn write_barcode(
     barcode: String,
-    user: i16,
+    user: String,
     jwt: &str,
     lager_user_ids: Vec<i16>,
 ) -> Result<BarcodeData, reqwest::Error> {

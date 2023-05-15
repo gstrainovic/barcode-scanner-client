@@ -1,4 +1,5 @@
-use fltk::{group, button, output, input, prelude::{WidgetExt, GroupExt}};
+use fltk::{group, button, output, input, prelude::{WidgetExt, GroupExt, InputExt, MenuExt}, menu::Choice};
+use fun::process_barcode::process_barcode;
 
 use crate::logo_and_version;
 
@@ -6,21 +7,22 @@ pub fn group3(
     wizard: group::Wizard,
     mut m1: output::Output,
     mut m2: output::Output,
-    // ) -> (group::Group, button::Button, output::Output, output::Output, input::Input, button::ReturnButton) {
+    mut user_id: output::Output,
+    lager_user_ids: Choice,
+    mut rf: output::Output,
+    mut bf: output::Output,
+    mut inp: input::Input,
+    mut jwt: output::Output,
 ) -> (
-    output::Output,
-    output::Output,
-    input::Input,
-    button::ReturnButton,
 ) {
     let grp2 = group::Group::default().size_of(&wizard);
 
     let mut grid = logo_and_version();
 
-    let mut bf = output::Output::default().with_label("Benutzername");
+
     grid.insert_ext(&mut bf, 7, 1, 1, 1);
 
-    let mut rf = output::Output::default().with_label("Rolle");
+
     grid.insert_ext(&mut rf, 8, 1, 1, 1);
 
     // let mut m1 = output::Output::default().with_label("Mitarbeiter 1");
@@ -32,7 +34,7 @@ pub fn group3(
     let mut backb = button::Button::default().with_label("Abmelden");
     grid.insert_ext(&mut backb, 12, 1, 1, 1);
 
-    let mut inp = input::Input::default().with_label("Barcode:");
+
     grid.insert_ext(&mut inp, 14, 1, 1, 1);
 
     let mut sendenb = button::ReturnButton::default().with_label("Senden");
@@ -46,5 +48,11 @@ pub fn group3(
         }
     );
 
-    (bf, rf, inp, sendenb)
+    sendenb.set_callback(move |_| {
+        println!("Lager user ids as choose: {:?}", lager_user_ids);
+        println!("User id: {}", user_id.value());
+
+        process_barcode(&mut inp, user_id.value(), jwt.value(), lager_user_ids_ints);
+    });
+
 }

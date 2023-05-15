@@ -8,7 +8,6 @@ pub struct IdAtr {
     pub attributes: Map<String, Value>,
 }
 
-
 #[derive(Deserialize, Debug)]
 pub struct BarcodeData {
     pub data: IdAtr,
@@ -19,7 +18,14 @@ pub async fn write_barcode(
     barcode: String,
     user: i16,
     jwt: &str,
+    lager_user_ids: Vec<i16>,
 ) -> Result<BarcodeData, reqwest::Error> {
+
+    println!("Barcode: {}", barcode);
+    println!("User: {}", user);
+    println!("JWT: {}", jwt);
+    println!("Lager Users: {:?}", lager_user_ids);
+
     let url = format!("{}/api/barcodes", STRAPI_URL);
 
     let client = reqwest::Client::builder().build()?;
@@ -30,7 +36,8 @@ pub async fn write_barcode(
         .json(&json!({
           "data": {
             "barcode": barcode,
-            "users_permissions_user": user
+            "users_permissions_user": user,
+            "lager_mitarbeiter": lager_user_ids
           }
         }))
         .send()

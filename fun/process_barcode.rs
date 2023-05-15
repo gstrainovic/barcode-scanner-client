@@ -7,7 +7,7 @@ use crate::send_barcode::send_barcode;
 // global array for barcode history
 static mut BARCODES: Vec<String> = Vec::new();
 
-pub fn process_barcode(i: &mut input::Input, user: i16, jwt: &str) {
+pub fn process_barcode(i: &mut input::Input, user: i16, jwt: &str, lager_user_ids: Vec<i16>) {
     i.activate();
     let barcode = i.value();
     let barcode_c = barcode.clone();
@@ -33,7 +33,7 @@ pub fn process_barcode(i: &mut input::Input, user: i16, jwt: &str) {
     // if barcode ends with a string from barcode_ausnahmen, then send it directly to server
     for barcode_ausnahme in barcode_ausnahmen {
         if barcode_lower.ends_with(barcode_ausnahme.to_lowercase().as_str()) {
-            send_barcode(barcode_c, user, jwt);
+            send_barcode(barcode_c, user, jwt, lager_user_ids);
             return;
         }
     }
@@ -83,7 +83,7 @@ pub fn process_barcode(i: &mut input::Input, user: i16, jwt: &str) {
     unsafe {
         if !BARCODES.contains(&barcode_lower) {
             BARCODES.push(barcode_lower.clone());
-            send_barcode(barcode_c, user, jwt)
+            send_barcode(barcode_c, user, jwt, lager_user_ids);
         } else {
             Notification::new()
                 .summary(&format!(

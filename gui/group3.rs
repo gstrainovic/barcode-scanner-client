@@ -1,7 +1,7 @@
 use fltk::{group, button, output, input, prelude::{WidgetExt, GroupExt, InputExt, MenuExt}, menu::Choice};
 use fun::process_barcode::process_barcode;
 
-use crate::{logo_and_version, GLAGER_USER_IDS};
+use crate::{logo_and_version, LAGER_USER_IDS, GJWT};
 
 pub fn group3(
     wizard: group::Wizard,
@@ -11,7 +11,6 @@ pub fn group3(
     mut rf: output::Output,
     mut bf: output::Output,
     mut inp: input::Input,
-    mut jwt: output::Output,
 ) -> (
 ) {
     let grp2 = group::Group::default().size_of(&wizard);
@@ -49,12 +48,12 @@ pub fn group3(
 
     sendenb.set_callback(move |_| {
         unsafe {
-            println!("Lager user ids as choose: {:?}", GLAGER_USER_IDS);
+            println!("Lager user ids as choose: {:?}", LAGER_USER_IDS);
         }
         println!("User id: {}", user_id.value());
 
         unsafe {
-            process_barcode(&mut inp, user_id.value(), jwt.value(), GLAGER_USER_IDS.clone());
+            process_barcode(&mut inp, user_id.value(), GJWT.clone(), LAGER_USER_IDS.clone());
         }
 
     });

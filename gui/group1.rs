@@ -2,7 +2,7 @@ use fltk::{group, button, input, prelude::{WidgetExt, GroupExt, InputExt, MenuEx
 use fun::looper::looper;
 use notify_rust::Notification;
 use req::{loginfn::{JWT, loginfn}, get_lager_users::get_lager_users};
-use crate::logo_and_version::logo_and_version;
+use crate::{logo_and_version::logo_and_version, GJWT};
 
 pub fn group1(
     mut wizard: group::Wizard,
@@ -15,7 +15,6 @@ pub fn group1(
     mut user_id: fltk::output::Output,
     inp: fltk::input::Input,
     chce: fltk::menu::Choice,
-    mut gjwt: fltk::output::Output,
 ) -> () {
     let grp1 = group::Group::default().size_of(&wizard);
 
@@ -66,7 +65,9 @@ pub fn group1(
                         error: None,
                     } => {
                         let guser = user;
-                        gjwt.set_value(&jwt.unwrap());
+                        unsafe { GJWT = jwt.unwrap() };
+
+                        let gjwt = unsafe { GJWT.clone() };
                         
                         println!("User: {:?}", guser);
                         println!("JWT: {:?}", gjwt);
@@ -76,9 +77,8 @@ pub fn group1(
 
                         println!("Username: {}", username);
                         println!("Rolle: {}", rolle);
-                        let lager_users = get_lager_users(gjwt.value()).unwrap();
+                        let lager_users = get_lager_users(gjwt).unwrap();
                         println!("Lager users: {:?}", lager_users);
-                        // add lager users to lager choice1 and lager choice2
                         for user in lager_users.iter() {
                             lager_choice1.add_choice(&user.username);
                             lager_choice2.add_choice(&user.username);

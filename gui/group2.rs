@@ -6,14 +6,13 @@ use fltk::{
 };
 use req::{get_lager_users::get_lager_users, loginfn::User};
 
-use crate::{logo_and_version::logo_and_version, GLAGER_USER_IDS};
+use crate::{logo_and_version::logo_and_version, LAGER_USER_IDS, GJWT};
 
 pub fn group2(
     mut wizard: group::Wizard,
     mut m1: Output,
     mut m2: Output,
     mut lager_user_choices: Vec<String>,
-    mut gjwt: Output,
     mut lager_choice1: Choice,
     mut lager_choice2: Choice,
 ) {
@@ -79,14 +78,13 @@ pub fn group2(
 
         println!("Lager user choices: {:?}", lager_user_choices);
 
-        let lager_users = get_lager_users(gjwt.value()).unwrap();
-
+        let lager_users = get_lager_users(unsafe { GJWT.clone() }).unwrap();
 
         for lager_user_choice in lager_user_choices.clone() {
             for lager_user in &lager_users {
                 if lager_user_choice == lager_user.username {
                     unsafe {
-                        GLAGER_USER_IDS.push(lager_user.id);
+                        LAGER_USER_IDS.push(lager_user.id);
                     }
                 }
             }
@@ -94,7 +92,7 @@ pub fn group2(
 
         println!("Lager user choices: {:?}", lager_user_choices);
         unsafe {
-            println!("Lager user ids: {:?}", GLAGER_USER_IDS);
+            println!("Lager user ids: {:?}", LAGER_USER_IDS);
         }
 
         wizard.next();

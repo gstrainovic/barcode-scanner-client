@@ -2,7 +2,7 @@ use fltk::{
     button, frame, group,
     menu::Choice,
     output::Output,
-    prelude::{GroupExt, InputExt, MenuExt, WidgetExt},
+    prelude::{GroupExt, InputExt, MenuExt, WidgetExt}, enums,
 };
 use req::{get_lager_users::get_lager_users, loginfn::User};
 
@@ -17,24 +17,47 @@ pub fn group2(
 ) {
     let grp_lager = group::Group::default().size_of(&wizard);
     let mut grid = logo_and_version();
+    // grid.debug(true);
+    grid.set_layout(22, 9);
+
     let mut lager_frame = frame::Frame::default().with_label("Wer hilft dir beim Verpacken?");
-    grid.insert_ext(&mut lager_frame, 7, 1, 1, 1);
+    grid.insert_ext(&mut lager_frame, 7, 3, 3, 1);
+
+    // check box Ich arbeite alleine
+    let mut lager_check = button::CheckButton::default().with_label("Ich arbeite alleine");
+    grid.insert_ext(&mut lager_check, 9,4, 3, 1);
+    // center the check box
+    // lager_check.set_align(enums::Align::Center);
 
     // two choice to select 1-2 colleagues
     lager_choice1.set_label("Mitarbeiter 1");
-
     lager_choice2.set_label("Mitarbeiter 2");
 
-    grid.insert_ext(&mut lager_choice1, 9, 1, 1, 1);
-    grid.insert_ext(&mut lager_choice2, 11, 1, 1, 1);
+    // if check box is checked, hide the two choices
+    lager_check.set_callback({
+        let mut lager_choice1_c = lager_choice1.clone();
+        let mut lager_choice2_c = lager_choice2.clone();
+        move |b| {
+            if b.is_checked() {
+                lager_choice1_c.hide();
+                lager_choice2_c.hide();
+            } else {
+                lager_choice1_c.show();
+                lager_choice2_c.show();
+            }
+        }
+    });
+
+    grid.insert_ext(&mut lager_choice1, 11, 3, 3, 1);
+    grid.insert_ext(&mut lager_choice2, 13, 3, 3, 1);
 
     //lager_button_zurueck
     let mut lager_button_zurueck = button::Button::default().with_label("Zurück");
-    grid.insert_ext(&mut lager_button_zurueck, 13, 1, 1, 1);
+    grid.insert_ext(&mut lager_button_zurueck, 15, 3, 1, 1);
 
     //lager_button_weiter
     let mut lager_button_weiter = button::ReturnButton::default().with_label("Weiter");
-    grid.insert_ext(&mut lager_button_weiter, 15, 1, 1, 1);
+    grid.insert_ext(&mut lager_button_weiter, 15, 5, 1, 1);
 
     grp_lager.end();
 

@@ -20,6 +20,7 @@ scanner = { path = "../scanner" }
 req = { path = "../req" }
 fun = { path = "../fun" }
 config = { path = "../config" }
+fltk-table = "0.3.0"
 
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "0.3", features = ["wincon", "winuser", "basetsd", "hidpi", "winnt", "libloaderapi", "fileapi", "hidsdi", "handleapi"] }

@@ -1,13 +1,33 @@
-use fltk::{input, prelude::{WidgetExt, InputExt}};
+use fltk::{
+    input,
+    prelude::{InputExt, WidgetExt, BrowserExt},
+};
 use notify_rust::Notification;
 use req::get_ausnahmen::get_ausnahmen;
 
-use crate::send_barcode::send_barcode;
+use crate::{send_barcode::send_barcode, errors, ERROR_STATUS};
 
 // global array for barcode history
 static mut BARCODES: Vec<String> = Vec::new();
 
-pub fn process_barcode(i: &mut input::Input, user_id: String, jwt: String, lager_user_ids: Vec<i16>) {
+pub fn history_add(
+    status: errors::Error,
+    barcode_c : &str,
+    mut history: fltk::browser::HoldBrowser,
+) {
+    let utc_time_string = chrono::Utc::now().format("%Y-%m-%d %H:%M:%S").to_string();
+    history.add(&format!("{}\t{}\t{}", status.message, barcode_c, utc_time_string));
+    history.top_line(history.size());
+    unsafe { ERROR_STATUS = status.status };
+}
+
+pub fn process_barcode(
+    i: &mut input::Input,
+    user_id: String,
+    jwt: String,
+    lager_user_ids: Vec<i16>,
+    mut history: fltk::browser::HoldBrowser,
+) {
     i.activate();
     let barcode = i.value();
     let barcode_c = barcode.clone();
@@ -15,7 +35,7 @@ pub fn process_barcode(i: &mut input::Input, user_id: String, jwt: String, lager
 
     let barcode_lower = barcode.to_lowercase();
 
-        // print the ausnahmen
+    // print the ausnahmen
     let ausnahmen = get_ausnahmen(&jwt);
     println!("Ausnahmen: {:?}", ausnahmen);
 
@@ -33,17 +53,16 @@ pub fn process_barcode(i: &mut input::Input, user_id: String, jwt: String, lager
     // if barcode ends with a string from barcode_ausnahmen, then send it directly to server
     for barcode_ausnahme in barcode_ausnahmen {
         if barcode_lower.ends_with(barcode_ausnahme.to_lowercase().as_str()) {
-            send_barcode(barcode_c, user_id, &jwt, lager_user_ids);
+            send_barcode(barcode_c.clone(), user_id, &jwt, lager_user_ids);
+            history_add(errors::ausnahme(), &barcode_c, history);
             return;
         }
     }
 
-
     // ups express like
     // 42096242 // len 8
     // but allow
-    if barcode_lower.len() < 9
-    {
+    if barcode_lower.len() < 9 {
         Notification::new()
             .summary(&format!(
                 "Barcode Scanner: {} ist zu kurz, nicht gesendet",
@@ -51,6 +70,7 @@ pub fn process_barcode(i: &mut input::Input, user_id: String, jwt: String, lager
             ))
             .show()
             .unwrap();
+        history_add(errors::zu_kurz(), &barcode_c, history);
         return;
     }
 
@@ -75,6 +95,7 @@ pub fn process_barcode(i: &mut input::Input, user_id: String, jwt: String, lager
                 ))
                 .show()
                 .unwrap();
+            history_add(errors::dhl_leitcode(), &barcode_c, history);
             return;
         }
     }
@@ -83,7 +104,8 @@ pub fn process_barcode(i: &mut input::Input, user_id: String, jwt: String, lager
     unsafe {
         if !BARCODES.contains(&barcode_lower) {
             BARCODES.push(barcode_lower.clone());
-            send_barcode(barcode_c, user_id, &jwt, lager_user_ids);
+            send_barcode(barcode_lower, user_id, &jwt, lager_user_ids);
+            history_add(errors::ok(), &barcode_c, history);
         } else {
             Notification::new()
                 .summary(&format!(
@@ -92,9 +114,9 @@ pub fn process_barcode(i: &mut input::Input, user_id: String, jwt: String, lager
                 ))
                 .show()
                 .unwrap();
+
+            history_add(errors::bereits_gesendet(), &barcode_c, history);
             return;
         }
     }
 }
-
-

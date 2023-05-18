@@ -1,6 +1,12 @@
-use fltk::{input, menu::Choice, prelude::{MenuExt, WidgetExt}};
-use scanner::{DeviceType, RawInputManager, RawEvent, KeyId, State};
+use fltk::{
+    input,
+    menu::Choice,
+    prelude::{MenuExt, WidgetExt},
+};
+use scanner::{DeviceType, KeyId, RawEvent, RawInputManager, State};
 use std::sync::Arc;
+
+use crate::{errors::Status, ERROR_STATUS};
 
 pub fn looper(mut inp: input::Input, chce: Choice) {
     println!("Looper started");
@@ -45,13 +51,19 @@ pub fn looper(mut inp: input::Input, chce: Choice) {
             match event {
                 RawEvent::KeyboardEvent(_, KeyId::Return, State::Released) => {
                     // activate the window current_active_window_hwnd again
+                    // std::thread::sleep(std::time::Duration::from_millis(5000));
                     unsafe {
-                        winapi::um::winuser::ShowWindow(
-                            my_windows_hwnd,
-                            winapi::um::winuser::SW_MINIMIZE,
-                        );
-                        winapi::um::winuser::SetForegroundWindow(switch_back_hwd);
-                        winapi::um::winuser::SetActiveWindow(switch_back_hwd);
+                        match ERROR_STATUS {
+                            Status::Ok => {
+                                winapi::um::winuser::ShowWindow(
+                                    my_windows_hwnd,
+                                    winapi::um::winuser::SW_MINIMIZE,
+                                );
+                                winapi::um::winuser::SetForegroundWindow(switch_back_hwd);
+                                winapi::um::winuser::SetActiveWindow(switch_back_hwd);
+                            }
+                            _ => {}
+                        }
                     }
                 }
 

@@ -7,6 +7,18 @@
         {
             "type": "lldb",
             "request": "launch",
+            "name": "Debug 'barcode_scanner'",
+            "cargo": {
+                "args": [
+                    "run",
+                ],
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
             "name": "Debug unit tests in library 'barcode_scanner'",
             "cargo": {
                 "args": [
@@ -30,13 +42,7 @@
             "cargo": {
                 "args": [
                     "build",
-                    // "--bin=barcode_scanner",
-                    // "--package=barcode_scanner"
                 ],
-                // "filter": {
-                //     "name": "barcode_scanner",
-                //     "kind": "bin"
-                // }
             },
             "args": [],
             "cwd": "${workspaceFolder}"

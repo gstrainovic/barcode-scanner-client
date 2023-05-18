@@ -1,4 +1,9 @@
-use fltk::{window, app::screen_size, dialog, image, prelude::{WidgetExt, GroupExt, WindowExt}};
+use fltk::{
+    app::screen_size,
+    dialog, image,
+    prelude::{GroupExt, WidgetExt, WindowExt},
+    window,
+};
 use notify_rust::Notification;
 
 pub fn win() -> window::Window {
@@ -25,4 +30,3 @@ pub fn win() -> window::Window {
     win.set_icon(Some(image));
     win
 }
-

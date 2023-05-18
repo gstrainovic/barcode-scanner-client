@@ -2,16 +2,17 @@ use crate::{
     get_hwnd_barcode_scanner::get_hwnd_barcode_scanner, group0::group0, group1::group1,
     group2::group2, group3::group3, hide_console_windows::hide_console_window,
     logo_and_version::logo_and_version, win::win,
+    
 };
 use config::STRAPI_URL;
 use fltk::{
     app, dialog, group, input,
     menu::Choice,
     output,
-    prelude::{GroupExt, InputExt, MenuExt, WidgetExt},
+    prelude::{GroupExt, InputExt, MenuExt, WidgetExt}, browser::HoldBrowser,
 };
 use fltk_theme::{ThemeType, WidgetTheme};
-use fun::{looper::looper, process_barcode::process_barcode, update::update};
+use fun::{looper::looper, process_barcode::process_barcode, update::update, errors::Status};
 use notify_rust::Notification;
 use req::{
     get_lager_users::get_lager_users,
@@ -44,6 +45,7 @@ fn main() {
     let mut rf = output::Output::default().with_label("Rolle");
     let mut bf = output::Output::default().with_label("Benutzername");
     let mut inp = input::Input::default().with_label("Barcode:");
+    let mut history = HoldBrowser::default();
     let mut lager_choice1 = Choice::default();
     lager_choice1.add_choice("-");
     let mut lager_choice2 = Choice::default();
@@ -97,6 +99,7 @@ fn main() {
         rf.clone(),
         bf.clone(),
         inp.clone(),
+        history.clone(),
     );
 
     wizard.end();

@@ -9,7 +9,7 @@ edition = "2021"
 self_update = { version = "0.36.0", features = ["archive-zip", "compression-flate2", "compression-zip-deflate"] }
 fltk = { version = "1.3.16", features = ["fltk-bundled"] }
 winapi = { version = "0.3", features = ["wincon", "winuser", "basetsd", "hidpi", "winnt", "libloaderapi", "fileapi", "hidsdi", "handleapi"] }
-
+chrono = "0.4.24"
 notify-rust = "4.5.10"
 req = { path = "../req" }
 scanner = { path = "../scanner" }

@@ -2,7 +2,6 @@ use fltk::{frame::{Frame, self}, image, prelude::{ImageExt, WidgetExt}};
 use fltk_grid::Grid;
 use config::VERSION;
 
-
 pub fn logo_and_version() -> Grid {
     fn logo() -> Frame {
         let mut logo = image::SvgImage::load("gui/gravurzeile-logo.svg").unwrap();

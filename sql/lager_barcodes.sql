@@ -1,7 +1,7 @@
 SELECT
   "public"."barcodes"."id" AS "Id",
   "public"."barcodes"."barcode" AS "Barcode",
-  "Up Users - User"."username" AS "User",
+  "Up Users - User"."username" AS "Mitarbeiter",
   "public"."barcodes"."fehler" AS "Fehler",
   "public"."barcodes"."fehler_auswahl" AS "Fehler Auswahl",
   "public"."barcodes"."created_at" AS "Datum"
@@ -15,7 +15,7 @@ UNION
 SELECT
   "public"."barcodes"."id" AS "Id",
   "public"."barcodes"."barcode" AS "Barcode",
-  "Up Users - User2"."username" AS "User",
+  "Up Users - User2"."username" AS "Mitarbeiter",
   "public"."barcodes"."fehler" AS "Fehler",
   "public"."barcodes"."fehler_auswahl" AS "Fehler Auswahl",
   "public"."barcodes"."created_at" AS "Datum"

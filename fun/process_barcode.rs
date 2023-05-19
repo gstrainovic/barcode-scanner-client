@@ -15,7 +15,7 @@ pub fn history_add(
     barcode_c : &str,
     mut history: fltk::browser::HoldBrowser,
 ) {
-    let utc_time_string = chrono::Utc::now().format("%Y-%m-%d %H:%M:%S").to_string();
+    let utc_time_string = chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
     history.add(&format!("{}\t{}\t{}", status.message, barcode_c, utc_time_string));
     history.top_line(history.size());
     unsafe { ERROR_STATUS = status.status };

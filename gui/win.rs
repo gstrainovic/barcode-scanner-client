@@ -5,6 +5,7 @@ use fltk::{
     window,
 };
 use notify_rust::Notification;
+use crate::favicon::FAVICON;
 
 pub fn win() -> window::Window {
     let w = screen_size().0 as i32;
@@ -26,7 +27,9 @@ pub fn win() -> window::Window {
     win.make_resizable(true);
 
     // add icon
-    let image = image::PngImage::load("gui/gravurzeile-favicon-32x32.png").unwrap();
+    // let image = image::PngImage::load("gui/gravurzeile-favicon-32x32.png").unwrap();
+    // convert LOGO constant string to image
+    let image = image::SvgImage::from_data(FAVICON).unwrap();
     win.set_icon(Some(image));
     win
 }

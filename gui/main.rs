@@ -26,6 +26,8 @@ mod group3;
 mod hide_console_windows;
 mod logo_and_version;
 mod win;
+mod logo;
+mod favicon;
 
 type HWND = *mut std::os::raw::c_void;
 pub static mut WINDOW: HWND = std::ptr::null_mut();

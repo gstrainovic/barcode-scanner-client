@@ -1,3 +1,4 @@
+pub const LOGO: &str = r###"
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 
@@ -165,3 +166,5 @@
     </g>
   </g>
 </svg>
+"###;
+

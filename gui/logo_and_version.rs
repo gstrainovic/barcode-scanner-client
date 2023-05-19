@@ -2,9 +2,14 @@ use fltk::{frame::{Frame, self}, image, prelude::{ImageExt, WidgetExt}};
 use fltk_grid::Grid;
 use config::VERSION;
 
+use crate::logo::LOGO;
+
+
 pub fn logo_and_version() -> Grid {
     fn logo() -> Frame {
-        let mut logo = image::SvgImage::load("gui/gravurzeile-logo.svg").unwrap();
+        // let mut logo = image::SvgImage::load("gui/gravurzeile-logo.svg").unwrap();
+        // load svg logo from constant string
+        let mut logo = image::SvgImage::from_data(LOGO).unwrap();
         let mut logoframe = frame::Frame::default(); //.with_size(200, 100);
         logo.scale(200, 100, true, true);
         logoframe.set_image(Some(logo));

@@ -18,7 +18,6 @@ pub struct Error {
     pub error_type: Type,
 }
 
-// Error Ausnahme
 pub fn ausnahme() -> Error {
     Error {
         message: "@C03Ausnahme".to_string(),
@@ -27,14 +26,6 @@ pub fn ausnahme() -> Error {
     }
 }
 
-// // Error Zu kurz
-// pub const ZU_KURZ: Error = Error {
-//     message: "@C88Zu kurz".to_string(),
-//     status: Status::Error,
-//     error_type: Type::ZuKurz,
-// };
-
-// Error Zu kurz
 pub fn zu_kurz() -> Error {
     Error {
         message: "@C88Zu kurz".to_string(),
@@ -43,14 +34,6 @@ pub fn zu_kurz() -> Error {
     }
 }
 
-// // Error DHL Leitcode
-// pub const DHL_LEITCODE: Error = Error {
-//     message: "@C88DHL Leitcode".to_string(),
-//     status: Status::Error,
-//     error_type: Type::DhlLeitcode,
-// };
-
-// Error DHL Leitcode
 pub fn dhl_leitcode() -> Error {
     Error {
         message: "@C88DHL Leitcode".to_string(),
@@ -59,14 +42,6 @@ pub fn dhl_leitcode() -> Error {
     }
 }
 
-// // Error Bereits gesendet
-// pub const BEREITS_GESENDET: Error = Error {
-//     message: "@C88Bereits gesendet".to_string(),
-//     status: Status::Error,
-//     error_type: Type::BereitsGesendet,
-// };
-
-// Error Bereits gesendet
 pub fn bereits_gesendet() -> Error {
     Error {
         message: "@C88Bereits gesendet".to_string(),
@@ -75,14 +50,6 @@ pub fn bereits_gesendet() -> Error {
     }
 }
 
-// // Error OK
-// pub const OK: Error = Error {
-//     message: "OK".to_string(),
-//     status: Status::Ok,
-//     error_type: Type::Ok,
-// };
-
-// Error OK
 pub fn ok() -> Error {
     Error {
         message: "OK".to_string(),

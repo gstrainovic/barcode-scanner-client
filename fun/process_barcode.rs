@@ -26,7 +26,7 @@ pub fn process_barcode(
     user_id: String,
     jwt: String,
     lager_user_ids: Vec<i16>,
-    mut history: fltk::browser::HoldBrowser,
+    history: fltk::browser::HoldBrowser,
 ) {
     i.activate();
     let barcode = i.value();
@@ -85,7 +85,7 @@ pub fn process_barcode(
     println!("barcode: {} len: {}", barcode_lower, barcode_lower.len());
     println!("barcode contains: {}", barcode_lower.contains('+'));
 
-    if barcode_lower.len() > 13 {
+    if barcode_lower.len() > 14 {
         let apostrophe = barcode_lower.chars().nth(14).unwrap();
         if (f == '¨' && s == 'c' && apostrophe == '`') || barcode_lower.contains('+') {
             Notification::new()

@@ -2,39 +2,34 @@ use fltk::{
     button, frame, group,
     menu::Choice,
     output::Output,
-    prelude::{GroupExt, InputExt, MenuExt, WidgetExt}, enums,
+    prelude::{GroupExt, InputExt, MenuExt, WidgetExt},
 };
-use req::{get_lager_users::get_lager_users, loginfn::User};
+use req::{get_lager_users::get_lager_users};
 
 use crate::{logo_and_version::logo_and_version, LAGER_USER_IDS, GJWT};
 
 pub fn group2(
     mut wizard: group::Wizard,
-    mut m1: Output,
-    mut m2: Output,
+    mut mitarbeiter1_output: Output,
+    mut mitarbeiter2_output: Output,
     mut lager_choice1: Choice,
     mut lager_choice2: Choice,
 ) {
     let grp_lager = group::Group::default().size_of(&wizard);
+
     let mut grid = logo_and_version();
-    // grid.debug(true);
     grid.set_layout(22, 9);
 
-    let mut lager_frame = frame::Frame::default().with_label("Wer hilft dir beim Verpacken?");
-    grid.insert_ext(&mut lager_frame, 7, 3, 3, 1);
+    let mut wer_hilft_label = frame::Frame::default().with_label("Wer hilft dir beim Verpacken?");
+    grid.insert_ext(&mut wer_hilft_label, 7, 3, 3, 1);
 
-    // check box Ich arbeite alleine
-    let mut lager_check = button::CheckButton::default().with_label("Ich arbeite alleine");
-    grid.insert_ext(&mut lager_check, 9,4, 3, 1);
-    // center the check box
-    // lager_check.set_align(enums::Align::Center);
+    let mut arbeite_alleine_checkbox = button::CheckButton::default().with_label("Ich arbeite alleine");
+    grid.insert_ext(&mut arbeite_alleine_checkbox, 9,4, 3, 1);
 
-    // two choice to select 1-2 colleagues
     lager_choice1.set_label("Mitarbeiter 1");
     lager_choice2.set_label("Mitarbeiter 2");
 
-    // if check box is checked, hide the two choices
-    lager_check.set_callback({
+    arbeite_alleine_checkbox.set_callback({
         let mut lager_choice1_c = lager_choice1.clone();
         let mut lager_choice2_c = lager_choice2.clone();
         move |b| {
@@ -51,17 +46,14 @@ pub fn group2(
     grid.insert_ext(&mut lager_choice1, 11, 3, 3, 1);
     grid.insert_ext(&mut lager_choice2, 13, 3, 3, 1);
 
-    //lager_button_zurueck
     let mut lager_button_zurueck = button::Button::default().with_label("Zurück");
     grid.insert_ext(&mut lager_button_zurueck, 15, 3, 1, 1);
 
-    //lager_button_weiter
     let mut lager_button_weiter = button::ReturnButton::default().with_label("Weiter");
     grid.insert_ext(&mut lager_button_weiter, 15, 5, 1, 1);
 
     grp_lager.end();
 
-    //lager_button_zurueck funktion
     lager_button_zurueck.set_callback({
         let mut wiz_c = wizard.clone();
         move |_| wiz_c.prev()
@@ -74,43 +66,42 @@ pub fn group2(
         match lager_choice1_c.choice() {
             Some(x) => {
                 if x != "-" {
-                    m1.set_value(&x);
-                    m1.show();
+                    mitarbeiter1_output.set_value(&x);
+                    mitarbeiter1_output.show();
                     lager_user_choices.push(x);
                 } else {
-                    m1.set_value("");
-                    m1.hide();
+                    mitarbeiter1_output.set_value("");
+                    mitarbeiter1_output.hide();
                 }
             }
             None => {
-                m1.set_value("");
-                m1.hide();
+                mitarbeiter1_output.set_value("");
+                mitarbeiter1_output.hide();
             }
         }
         match lager_choice2_c.choice() {
             Some(x) => {
                 if x != "-" {
-                    m2.set_value(&x);
-                    m2.show();
+                    mitarbeiter2_output.set_value(&x);
+                    mitarbeiter2_output.show();
                     lager_user_choices.push(x);
                 } else {
-                    m2.set_value("");
-                    m2.hide();
+                    mitarbeiter2_output.set_value("");
+                    mitarbeiter2_output.hide();
                 }
             }
             None => {
-                m2.set_value("");
-                m2.hide();
+                mitarbeiter2_output.set_value("");
+                mitarbeiter2_output.hide();
             }
         }
 
-        if m1.value() == m2.value() && m1.value() != "" && m2.value() != "" {
+        if mitarbeiter1_output.value() == mitarbeiter2_output.value() && mitarbeiter1_output.value() != "" && mitarbeiter2_output.value() != "" {
             let message = "Mitarbeiter 1 und Mitarbeiter 2 dürfen nicht gleich sein!";
             println!("{}", message);
             fltk::dialog::alert_default(message);
             return;
         }
-        println!("Lager user choices: {:?}", lager_user_choices);
 
         let lager_users = get_lager_users(unsafe { GJWT.clone() }).unwrap();
         unsafe { LAGER_USER_IDS.clear() };
@@ -122,9 +113,6 @@ pub fn group2(
                     }
                 }
             }
-        }
-        unsafe {
-            println!("Lager user ids: {:?}", LAGER_USER_IDS);
         }
 
         wizard.next();

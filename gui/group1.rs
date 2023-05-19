@@ -1,23 +1,21 @@
 use fltk::{group, button, input, prelude::{WidgetExt, GroupExt, InputExt, MenuExt}, frame, enums, dialog};
-use fun::looper::looper;
+use fun::{looper::looper, username_camelcase::username_camelcase};
 use notify_rust::Notification;
 use req::{loginfn::{JWT, loginfn}, get_lager_users::get_lager_users};
-use crate::{logo_and_version::logo_and_version, GJWT};
+use crate::{logo_and_version::logo_and_version, GJWT, USER_ID};
 
 pub fn group1(
     mut wizard: group::Wizard,
     mut lager_choice1: fltk::menu::Choice,
     mut lager_choice2: fltk::menu::Choice,
-    mut m1: fltk::output::Output,
-    mut m2: fltk::output::Output,
-    mut bf: fltk::output::Output,
-    mut rf: fltk::output::Output,
-    mut user_id: fltk::output::Output,
-    inp: fltk::input::Input,
-    chce: fltk::menu::Choice,
+    mut mitarbeiter1_output: fltk::output::Output,
+    mut mitarbeiter2_output: fltk::output::Output,
+    mut benutzername_output: fltk::output::Output,
+    mut rolle_output: fltk::output::Output,
+    barcode_input: fltk::input::Input,
+    device_choice: fltk::menu::Choice,
 ) -> () {
     let grp1 = group::Group::default().size_of(&wizard);
-
     let mut grid = logo_and_version();
 
     let mut please_login_frame = frame::Frame::default().with_label("Bitte anmelden");
@@ -31,10 +29,10 @@ pub fn group1(
     let mut user_input = input::Input::default();
     grid.insert_ext(&mut user_input, 9, 1, 1, 1);
 
-    let mut pframe = frame::Frame::default()
+    let mut password_label = frame::Frame::default()
         .with_label("Passwort:")
         .with_align(enums::Align::Inside | enums::Align::Right);
-    grid.insert_ext(&mut pframe, 10, 0, 1, 1);
+    grid.insert_ext(&mut password_label, 10, 0, 1, 1);
 
     let mut password = input::SecretInput::default();
     grid.insert_ext(&mut password, 10, 1, 1, 1);
@@ -45,17 +43,8 @@ pub fn group1(
     grp1.end();
 
     login_button.set_callback(move |_| {
-        // transform username to first letter uppercase and rest lowercase
-        let mut uname = user_input.value();
-        uname = uname.to_lowercase();
-        let mut uname = uname.chars();
-        let first = uname.next().unwrap().to_uppercase();
-        let rest: String = uname.collect();
-        let uname = format!("{}{}", first, rest);
-        println!("Username: {}", uname);
-        let res = loginfn(uname, password.value());
-        println!("{:?}", res);
-
+        let username = username_camelcase(user_input.value());
+        let res = loginfn(username, password.value());
         match res {
             Ok(j) => {
                 match j {
@@ -64,48 +53,33 @@ pub fn group1(
                         jwt,
                         error: None,
                     } => {
-                        let guser = user;
                         unsafe { GJWT = jwt.unwrap() };
-
                         let gjwt = unsafe { GJWT.clone() };
-                        
-                        println!("User: {:?}", guser);
-                        println!("JWT: {:?}", gjwt);
-
-                        let username = guser.as_ref().unwrap().username.clone();
-                        let rolle = guser.as_ref().unwrap().rolle.clone();
-
-                        println!("Username: {}", username);
-                        println!("Rolle: {}", rolle);
+                        let username = user.as_ref().unwrap().username.clone();
+                        let rolle = user.as_ref().unwrap().rolle.clone();
                         let lager_users = get_lager_users(gjwt).unwrap()
                             .into_iter()
                             .filter(|u| u.username != username)
                             .collect::<Vec<_>>();
-                        println!("Lager users: {:?}", lager_users);
                         for user in lager_users.iter() {
                             lager_choice1.add_choice(&user.username);
                             lager_choice2.add_choice(&user.username);
                         }
-
-                        // add empty choice to lager_choice1 and lager_choice2
-
-
                         if rolle == "Lager" {
                             wizard.next();
                         } else {
-                            m1.set_value("");
-                            m2.set_value("");
-                            m1.hide();
-                            m2.hide();
+                            mitarbeiter1_output.set_value("");
+                            mitarbeiter2_output.set_value("");
+                            mitarbeiter1_output.hide();
+                            mitarbeiter2_output.hide();
                             wizard.next();
                             wizard.next();
                         }
 
-                        bf.set_value(&username);
-                        rf.set_value(guser.as_ref().unwrap().rolle.as_str());
+                        benutzername_output.set_value(&username);
+                        rolle_output.set_value(user.as_ref().unwrap().rolle.as_str());
 
-                        user_id.set_value(&guser.as_ref().unwrap().id.to_string());
-                        // let jwt = gjwt.clone();
+                        unsafe { USER_ID = user.as_ref().unwrap().id.to_string() };
 
                         Notification::new()
                             .summary(&format!(
@@ -115,9 +89,8 @@ pub fn group1(
                             .show()
                             .unwrap();
 
-                        // start looper in new thread
-                        let inp_c = inp.clone();
-                        let chce_c = chce.clone();
+                        let inp_c = barcode_input.clone();
+                        let chce_c = device_choice.clone();
                         std::thread::spawn(|| looper(inp_c, chce_c));
                     }
                     JWT {

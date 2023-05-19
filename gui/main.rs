@@ -1,23 +1,18 @@
 use crate::{
     get_hwnd_barcode_scanner::get_hwnd_barcode_scanner, group0::group0, group1::group1,
     group2::group2, group3::group3, hide_console_windows::hide_console_window,
-    logo_and_version::logo_and_version, win::win,
+    logo_and_version::logo_and_version, win::win, device_choice::device_choice,
     
 };
-use config::STRAPI_URL;
 use fltk::{
     app, dialog, group, input,
     menu::Choice,
     output,
-    prelude::{GroupExt, InputExt, MenuExt, WidgetExt}, browser::HoldBrowser,
+    prelude::{GroupExt, MenuExt, WidgetExt}, browser::HoldBrowser,
 };
 use fltk_theme::{ThemeType, WidgetTheme};
-use fun::{looper::looper, process_barcode::process_barcode, update::update, errors::Status};
-use notify_rust::Notification;
-use req::{
-    get_lager_users::get_lager_users,
-    loginfn::{loginfn, User, JWT},
-};
+use fun::{update::update};
+
 mod get_hwnd_barcode_scanner;
 mod group0;
 mod group1;
@@ -28,41 +23,38 @@ mod logo_and_version;
 mod win;
 mod logo;
 mod favicon;
+mod device_choice;
 
 type HWND = *mut std::os::raw::c_void;
 pub static mut WINDOW: HWND = std::ptr::null_mut();
 
 static mut LAGER_USER_IDS: Vec<i16> = Vec::new();
 static mut GJWT : String = String::new();
+static mut USER_ID : String = String::new();
 
 fn main() {
-    println!("STRAPI_URL: {}", STRAPI_URL);
     hide_console_window();
     update().unwrap();
 
-    let mut user_id = output::Output::default();
-
-    let mut m1 = output::Output::default().with_label("Mitarbeiter 1");
-    let mut m2 = output::Output::default().with_label("Mitarbeiter 2");
-    let mut rf = output::Output::default().with_label("Rolle");
-    let mut bf = output::Output::default().with_label("Benutzername");
-    let mut inp = input::Input::default().with_label("Barcode:");
-    let mut history = HoldBrowser::default();
+    // globals
+    let mitarbeiter1_output = output::Output::default().with_label("Mitarbeiter 1");
+    let mitarbeiter2_output = output::Output::default().with_label("Mitarbeiter 2");
+    let rolle_output = output::Output::default().with_label("Rolle");
+    let benutzername_output = output::Output::default().with_label("Benutzername");
+    let barcode_input = input::Input::default().with_label("Barcode:");
+    let device_choice = device_choice();
+    let history_browser = HoldBrowser::default();
     let mut lager_choice1 = Choice::default();
     lager_choice1.add_choice("-");
     let mut lager_choice2 = Choice::default();
     lager_choice2.add_choice("-");
-
     let hwnd_of_barcode_scanner = get_hwnd_barcode_scanner();
-
     if hwnd_of_barcode_scanner != std::ptr::null_mut() {
-        let message = "Barcodescanner läuft bereits!";
-        println!("{}", message);
-        dialog::alert_default(message);
+        dialog::alert_default("Barcodescanner läuft bereits!");
         return;
     }
 
-    let a = app::App::default().with_scheme(app::Scheme::Gleam);
+    let app = app::App::default().with_scheme(app::Scheme::Gleam);
     app::set_visible_focus(true);
 
     let widget_theme = WidgetTheme::new(ThemeType::Dark);
@@ -70,38 +62,36 @@ fn main() {
 
     let mut win = win();
 
-    let mut wizard = group::Wizard::default().with_size(win.width(), win.height());
+    let wizard = group::Wizard::default().with_size(win.width(), win.height());
 
-    let chce = group0(wizard.clone());
+    group0(wizard.clone(), device_choice.clone());
 
     group1(
         wizard.clone(),
         lager_choice1.clone(),
         lager_choice2.clone(),
-        m1.clone(),
-        m2.clone(),
-        bf.clone(),
-        rf.clone(),
-        user_id.clone(),
-        inp.clone(),
-        chce,
+        mitarbeiter1_output.clone(),
+        mitarbeiter2_output.clone(),
+        benutzername_output.clone(),
+        rolle_output.clone(),
+        barcode_input.clone(),
+        device_choice,
     );
     group2(
         wizard.clone(),
-        m1.clone(),
-        m2.clone(),
+        mitarbeiter1_output.clone(),
+        mitarbeiter2_output.clone(),
         lager_choice1.clone(),
         lager_choice2.clone(),
     );
     group3(
         wizard.clone(),
-        m1.clone(),
-        m2.clone(),
-        user_id,
-        rf.clone(),
-        bf.clone(),
-        inp.clone(),
-        history.clone(),
+        mitarbeiter1_output.clone(),
+        mitarbeiter2_output.clone(),
+        rolle_output.clone(),
+        benutzername_output.clone(),
+        barcode_input.clone(),
+        history_browser.clone(),
     );
 
     wizard.end();
@@ -116,5 +106,5 @@ fn main() {
         winapi::um::winuser::SetActiveWindow(hwnd_of_barcode_scanner);
     }
 
-    a.run().unwrap();
+    app.run().unwrap();
 }

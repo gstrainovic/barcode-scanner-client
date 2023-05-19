@@ -54,9 +54,6 @@ pub fn looper(mut inp: input::Input, chce: Choice) {
                     unsafe {
                     // activate the window current_active_window_hwnd again
                         match ERROR_STATUS {
-                            // Status::Error | Status::Warn => {
-                            //     std::thread::sleep(std::time::Duration::from_millis(5000));
-                            // }
                             Status::Ok => {
                                 winapi::um::winuser::ShowWindow(
                                     my_windows_hwnd,

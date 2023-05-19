@@ -25,4 +25,4 @@ LEFT JOIN "public"."barcodes_lager_mitarbeiter_links" "Barcodes Lager Mitarbeite
 LEFT JOIN "public"."up_users" "Up Users - User2"
   ON "Barcodes Lager Mitarbeiter Links"."user_id" = "Up Users - User2"."id"
 WHERE "Up Users - User2"."rolle" = 'Lager'
-ORDER BY "Barcode" DESC;
+ORDER BY "Id" DESC;

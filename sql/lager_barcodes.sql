@@ -1,5 +1,6 @@
 SELECT
   "public"."barcodes"."id" AS "Barcode",
+  "public"."barcodes"."barcode" AS "bc",
   "Up Users - User"."username" AS "User",
   "public"."barcodes"."fehler" AS "fehler",
   "public"."barcodes"."fehler_auswahl" AS "fehler_auswahl",
@@ -13,6 +14,7 @@ WHERE "Up Users - User"."rolle" = 'Lager'
 UNION
 SELECT
   "public"."barcodes"."id" AS "Barcode",
+  "public"."barcodes"."barcode" AS "bc",
   "Up Users - User2"."username" AS "User",
   "public"."barcodes"."fehler" AS "fehler",
   "public"."barcodes"."fehler_auswahl" AS "fehler_auswahl",

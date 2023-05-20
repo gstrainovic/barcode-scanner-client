@@ -26,5 +26,5 @@ fltk-table = "0.3.0"
 winapi = { version = "0.3", features = ["wincon", "winuser", "basetsd", "hidpi", "winnt", "libloaderapi", "fileapi", "hidsdi", "handleapi"] }
 
 [[bin]]
-name = "gui"
+name = "barcode_scanner"
 path = "main.rs"

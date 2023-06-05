@@ -74,20 +74,18 @@ pub fn process_barcode(
         return;
     }
 
-    let f = barcode_lower.chars().nth(0).unwrap();
-    let s = barcode_lower.chars().nth(1).unwrap();
-
-    // DHL Leitcode like
-    // ¨C140327619348`99000900190051
+    
+    // block DHL Leitcode like
+    // ¨C140327619348`99000900190051 
     // ¨C140327628203`99000900033018
     // 0327642113+99..
-
-    println!("barcode: {} len: {}", barcode_lower, barcode_lower.len());
-    println!("barcode contains: {}", barcode_lower.contains('+'));
-
+    let f = barcode_lower.chars().nth(0).unwrap();
+    let s = barcode_lower.chars().nth(1).unwrap();
+    let plus = barcode_lower.chars().nth(10).unwrap();
+    let apostrophe = barcode_lower.chars().nth(14).unwrap();
+    
     if barcode_lower.len() > 14 {
-        let apostrophe = barcode_lower.chars().nth(14).unwrap();
-        if (f == '¨' && s == 'c' && apostrophe == '`') || barcode_lower.contains('+') {
+        if (f == '¨' && s == 'c' && apostrophe == '`') || plus == '+' {
             Notification::new()
                 .summary(&format!(
                     "Barcode Scanner: {} als DHL Leitcode erkannt, nicht gesendet",

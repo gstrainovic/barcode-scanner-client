@@ -33,6 +33,8 @@ static mut GJWT : String = String::new();
 static mut USER_ID : String = String::new();
 
 fn main() {
+
+
     hide_console_window();
     update().unwrap();
 

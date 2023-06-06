@@ -4,6 +4,7 @@ use fltk::{
 };
 use notify_rust::Notification;
 use req::get_ausnahmen::get_ausnahmen;
+use sqlite::{establish_connection, create_history};
 
 use crate::{send_barcode::send_barcode, errors, ERROR_STATUS};
 
@@ -19,6 +20,9 @@ pub fn history_add(
     history.add(&format!("{}\t{}\t{}", status.message, barcode_c, utc_time_string));
     history.top_line(history.size());
     unsafe { ERROR_STATUS = status.status };
+
+    // save also to sqlite
+    create_history(&mut establish_connection(), &status.message, &barcode_c, &utc_time_string);
 }
 
 pub fn process_barcode(

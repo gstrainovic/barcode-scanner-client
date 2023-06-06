@@ -20,6 +20,7 @@ scanner = { path = "../scanner" }
 req = { path = "../req" }
 fun = { path = "../fun" }
 config = { path = "../config" }
+sqlite = { path = "../sqlite" }
 fltk-table = "0.3.0"
 
 [target.'cfg(windows)'.dependencies]

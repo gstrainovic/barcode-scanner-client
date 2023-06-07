@@ -7,7 +7,7 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug 'barcode_scanner'",
+            "name": "run 'barcode_scanner'",
             "cargo": {
                 "args": [
                     "run",

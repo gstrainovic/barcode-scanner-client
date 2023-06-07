@@ -13,6 +13,7 @@ use fltk::{
 use fltk_theme::{ThemeType, WidgetTheme};
 use fun::{update::update};
 
+
 mod get_hwnd_barcode_scanner;
 mod group0;
 mod group1;
@@ -33,11 +34,9 @@ static mut GJWT : String = String::new();
 static mut USER_ID : String = String::new();
 
 fn main() {
-
-
     hide_console_window();
     update().unwrap();
-
+    
     // globals
     let mitarbeiter1_output = output::Output::default().with_label("Mitarbeiter 1");
     let mitarbeiter2_output = output::Output::default().with_label("Mitarbeiter 2");

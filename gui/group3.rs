@@ -1,6 +1,6 @@
 use fltk::{group, button, output, input, prelude::{WidgetExt, GroupExt, BrowserExt}, browser::{HoldBrowser, Browser}};
 use fun::process_barcode::process_barcode;
-
+use sqlite::{establish_connection, load_history};
 use crate::{logo_and_version, LAGER_USER_IDS, GJWT, USER_ID};
 
 pub fn group3(
@@ -56,6 +56,14 @@ pub fn group3(
         wizard.clone().prev();
         }
     );
+
+    // load the first 1000 entries from the history table into the history browser
+    let mut conn = establish_connection();
+    let history = load_history(&mut conn);
+    for h in history {
+        history_browser.add(&format!("{}\t{}\t{}", h.status, h.barcode, h.timestamp));
+        history_browser.top_line(history_browser.size());
+    }
 
     senden_button.set_callback(move |_| {
         unsafe {

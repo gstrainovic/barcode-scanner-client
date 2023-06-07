@@ -2,24 +2,39 @@ pub mod models;
 pub mod schema;
 
 use diesel::prelude::*;
-use std::fs;
+use std::{fs, error::Error};
 use crate::models::{NewHistory, History};
 use std::path::Path;
 use schema::history;
+use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
+pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("migrations");
+
+fn run_migrations<DB: diesel::backend::Backend>(connection: &mut impl MigrationHarness<DB>) -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
+    // This will run the necessary migrations.
+    //
+    // See the documentation for `MigrationHarness` for
+    // all available methods.
+    connection.run_pending_migrations(MIGRATIONS)?;
+
+    Ok(())
+}
 
 pub fn establish_connection() -> SqliteConnection {
-    // check if db.sqlite exists, if not create it
-    let db_path = Path::new("db.sqlite");
-    if !db_path.exists() {
-        fs::copy("db.sqlite.template", "db.sqlite").expect("Unable to copy file");
+    let path = Path::new("db.sqlite");
+
+    if !path.exists() {
+        fs::File::create(path).expect("Unable to create file");
     }
 
-    SqliteConnection::establish( "db.sqlite")
-        .unwrap_or_else(|_| panic!("Error connecting to {}", "db.sqlite"))
+    let mut conn = SqliteConnection::establish( path.to_str().unwrap() )
+        .unwrap_or_else(|_| panic!("Error connecting to {}", path.to_str().unwrap()));
+
+    run_migrations(&mut conn).unwrap();
+
+    conn
 }
 
 pub fn create_history<'a>(conn: &mut SqliteConnection, status: &'a str, barcode: &'a str, timestamp: &'a str) -> History {
-
     let new_history = NewHistory {
         status,
         barcode,

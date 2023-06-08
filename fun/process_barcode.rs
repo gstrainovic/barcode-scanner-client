@@ -43,22 +43,11 @@ pub fn process_barcode(
     let ausnahmen = get_ausnahmen(&jwt);
     println!("Ausnahmen: {:?}", ausnahmen);
 
-    // get barcodes from ausnahmen
-    // Ausnahmen: Ok(AusnahmenData { data: [IdAtrAusnahmen { id: 1, attributes: Ausnahmen { Barcode: "0101080", Bedeutung: "Kosmische Strahlung" } }, IdAtrAusnahmen { id: 2, attributes: Ausnahmen {
-    // Barcode: "0101090", Bedeutung: "Vulkanausbruch" } }] })
-    let mut barcode_ausnahmen = Vec::new();
-    for ausnahme in ausnahmen.unwrap().data {
-        barcode_ausnahmen.push(ausnahme.attributes.Barcode);
-    }
-
-    // print the barcodes
-    println!("Barcodes: {:?}", barcode_ausnahmen);
-
     // if barcode ends with a string from barcode_ausnahmen, then send it directly to server
-    for barcode_ausnahme in barcode_ausnahmen {
-        if barcode_lower.ends_with(barcode_ausnahme.to_lowercase().as_str()) {
+    for barcode_ausnahme in ausnahmen.unwrap().data {
+        if barcode_lower.ends_with(barcode_ausnahme.attributes.Barcode.to_lowercase().as_str()) {
             send_barcode(barcode_c.clone(), user_id, &jwt, lager_user_ids);
-            history_add(errors::ausnahme(), &barcode_c, history);
+            history_add(errors::ausnahme(barcode_ausnahme.attributes.Bedeutung), &barcode_c, history);
             return;
         }
     }

@@ -1,3 +1,2 @@
-- create build script
 - leitcodes from sql, not from code
 - add a fail if the barcode is only shift characters

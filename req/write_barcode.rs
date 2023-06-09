@@ -21,11 +21,6 @@ pub async fn write_barcode(
     lager_user_ids: Vec<i16>,
 ) -> Result<BarcodeData, reqwest::Error> {
 
-    println!("Barcode: {}", barcode);
-    println!("User: {}", user);
-    println!("JWT: {}", jwt);
-    println!("Lager Users: {:?}", lager_user_ids);
-
     let url = format!("{}/api/barcodes", STRAPI_URL);
 
     let client = reqwest::Client::builder().build()?;
@@ -44,8 +39,6 @@ pub async fn write_barcode(
         .await?;
 
     let body = res.text().await?;
-
-    println!("Body:\n{}", body);
 
     Ok(serde_json::from_str(&body).unwrap())
 }

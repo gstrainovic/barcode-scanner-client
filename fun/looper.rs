@@ -9,9 +9,6 @@ use std::sync::Arc;
 use crate::{errors::Status, ERROR_STATUS};
 
 pub fn looper(mut inp: input::Input, chce: Choice) {
-    println!("Looper started");
-    println!("Choice {}", chce.choice().unwrap().to_string());
-
     let mut switch_back_hwd = unsafe { winapi::um::winuser::GetForegroundWindow() };
 
     let mut manager = RawInputManager::new().unwrap();

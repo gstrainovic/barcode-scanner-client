@@ -255,17 +255,11 @@ fn setup_message_window() -> HWND {
 
 /// Prints a list of all available raw input devices
 fn print_raw_device_list(devices: &Devices) {
-    println!("Mice:");
     for mouse in &devices.mice {
-        println!("{:?}", mouse);
     }
-    println!("Keyboards:");
     for keyboard in &devices.keyboards {
-        println!("{:?}", keyboard);
     }
-    println!("Hids:");
     for joystick in &devices.joysticks {
-        println!("{:?}", joystick);
     }
 }
 

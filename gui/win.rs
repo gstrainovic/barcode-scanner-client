@@ -15,7 +15,6 @@ pub fn win() -> window::Window {
     win.set_label("BarcodeScanner");
     win.set_callback(|w| {
         let choice = dialog::choice2_default("Barcodescanner beenden?", "Nein", "Ja", "Abbruch");
-        println!("{:?}", choice);
         if choice == Some(1) {
             let mut notif = Notification::new();
             notif.summary("Barcode Scanner: Barcodescanner beendet");

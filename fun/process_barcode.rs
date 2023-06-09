@@ -41,7 +41,6 @@ pub fn process_barcode(
 
     let settings = get_settings(&jwt).unwrap().data.attributes;
     println!("settings{:?}", settings);
-
     
     if settings.Leitcodes_Aktiv {
         let ausnahmen = get_ausnahmen(&jwt);

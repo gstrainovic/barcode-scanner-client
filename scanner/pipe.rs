@@ -40,7 +40,6 @@ fn activate( ) {
         
         // print hwnd to console
         let string_hwnd = format!("{:?}", hwnd); 
-        println!("hwnd: {}", string_hwnd);
         if hwnd != null_mut() {
             unsafe {
                 ShowWindow(hwnd, SW_RESTORE);

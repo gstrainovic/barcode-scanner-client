@@ -34,7 +34,6 @@ pub async fn loginfn(user: String, pass: String) -> Result<JWT, reqwest::Error> 
         .await?;
 
     let body = res.text().await?;
-    println!("Body:\n{}", body);
 
     Ok(serde_json::from_str(&body).unwrap())
 }

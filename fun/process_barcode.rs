@@ -3,7 +3,7 @@ use fltk::{
     prelude::{InputExt, WidgetExt, BrowserExt},
 };
 use notify_rust::Notification;
-use req::get_ausnahmen::get_ausnahmen;
+use req::{get_ausnahmen::get_ausnahmen, get_settings::get_settings};
 use sqlite::{establish_connection, create_history};
 
 use crate::{send_barcode::send_barcode, errors, ERROR_STATUS};
@@ -39,23 +39,25 @@ pub fn process_barcode(
 
     let barcode_lower = barcode.to_lowercase();
 
-    // print the ausnahmen
-    let ausnahmen = get_ausnahmen(&jwt);
-    println!("Ausnahmen: {:?}", ausnahmen);
+    let settings = get_settings(&jwt).unwrap().data.attributes;
+    println!("settings{:?}", settings);
 
-    // if barcode ends with a string from barcode_ausnahmen, then send it directly to server
-    for barcode_ausnahme in ausnahmen.unwrap().data {
-        if barcode_lower.ends_with(barcode_ausnahme.attributes.Barcode.to_lowercase().as_str()) {
-            send_barcode(barcode_c.clone(), user_id, &jwt, lager_user_ids);
-            history_add(errors::ausnahme(barcode_ausnahme.attributes.Bedeutung), &barcode_c, history);
-            return;
+    
+    if settings.Leitcodes_Aktiv {
+        let ausnahmen = get_ausnahmen(&jwt);
+        println!("ausnahmen{:?}", ausnahmen);
+    
+        // if barcode ends with a string from barcode_ausnahmen, then send it directly to server
+        for barcode_ausnahme in ausnahmen.unwrap().data {
+            if barcode_lower.ends_with(barcode_ausnahme.attributes.Barcode.to_lowercase().as_str()) {
+                send_barcode(barcode_c.clone(), user_id, &jwt, lager_user_ids);
+                history_add(errors::ausnahme(barcode_ausnahme.attributes.Bedeutung), &barcode_c, history);
+                return;
+            }
         }
     }
 
-    // ups express like
-    // 42096242 // len 8
-    // but allow
-    if barcode_lower.len() < 9 {
+    if barcode_lower.len() < settings.Barcode_Mindestlaenge as usize {
         Notification::new()
             .summary(&format!(
                 "Barcode Scanner: {} ist zu kurz, nicht gesendet",

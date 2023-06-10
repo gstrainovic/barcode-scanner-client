@@ -48,11 +48,9 @@ pub fn process_barcode(
     let barcode_lower = barcode.to_lowercase();
 
     let settings = get_settings(&jwt).unwrap().data.attributes;
-    // println!("settings{:?}", settings);
 
     if settings.Ausnahmen_Aktiv {
         let ausnahmen = get_ausnahmen(&jwt);
-        // println!("ausnahmen{:?}", ausnahmen);
 
         // if barcode ends with a string from barcode_ausnahmen, then send it directly to server
         for barcode_ausnahme in ausnahmen.unwrap().data {
@@ -88,24 +86,18 @@ pub fn process_barcode(
         // 0327642113+99..
 
         let leitcodes : Vec<IdAtr> = get_leitcodes(&jwt).unwrap().data;
-        // println!("leitcodes{:?}", leitcodes);
 
         for idatr in leitcodes {
             let attribute : Leitcode = idatr.attributes;
-            println!("leitcode atr{:?}", attribute);
             let mindest_laenge : i8 = attribute.Mindeslaenge;
-            println!("mindest_laenge{:?}", mindest_laenge);
             
             if barcode_lower.len() > mindest_laenge as usize {
                 let beschreibung = attribute.Beschreibung;
-                println!("beschreibung{:?}", beschreibung);
                 let dataBuchstaben : Vec<IdAtrBuchstaben> = attribute.Leitcode_Buchstabe.data;
                 for buchstabe in dataBuchstaben {
                     let buchstaben : LeitcodeBuchstabe = buchstabe.attributes;
                     let buchstabe : String = buchstaben.Buchstabe;
-                    println!("buchstabe{:?}", buchstabe);
                     let position : usize = buchstaben.Position_Null_Beginnend as usize;
-                    println!("position{:?}", position);
 
                     // does the barcode match witch buchstabe at position?
                     println!("barcode_lower{:?}", barcode_lower);

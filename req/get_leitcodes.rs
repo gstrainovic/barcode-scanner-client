@@ -16,7 +16,17 @@ pub struct IdAtr {
 pub struct Leitcode {
     pub Beschreibung: String,
     pub Mindeslaenge: i8,
-    pub Leitcode_Buchstabe: LeitcodeBuchstabe,
+    pub Leitcode_Buchstabe: DataBuchstaben,
+}
+#[derive(Deserialize, Debug)]
+pub struct DataBuchstaben {
+    pub data: Vec<IdAtrBuchstaben>,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct IdAtrBuchstaben {
+    pub id: i16,
+    pub attributes: LeitcodeBuchstabe,
 }
 
 #[derive(Deserialize, Debug)]

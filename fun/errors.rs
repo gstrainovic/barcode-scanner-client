@@ -35,9 +35,9 @@ pub fn zu_kurz() -> Error {
     }
 }
 
-pub fn dhl_leitcode() -> Error {
+pub fn leitcode(x : String) -> Error {
     Error {
-        message: "@C88DHL Leitcode".to_string(),
+        message: format!("@C88{} Leitcode", x),
         status: Status::Error,
         error_type: Type::DhlLeitcode,
     }

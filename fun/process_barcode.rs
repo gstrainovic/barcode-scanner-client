@@ -4,8 +4,7 @@ use fltk::{
 };
 use notify_rust::Notification;
 use req::{
-    get_ausnahmen::get_ausnahmen, get_leitcodes::get_leitcodes, get_leitcodes::Data,
-    get_leitcodes::DataBuchstaben, get_leitcodes::IdAtr, get_leitcodes::IdAtrBuchstaben,
+    get_ausnahmen::get_ausnahmen, get_leitcodes::get_leitcodes, get_leitcodes::IdAtr, get_leitcodes::IdAtrBuchstaben,
     get_leitcodes::Leitcode, get_leitcodes::LeitcodeBuchstabe, get_settings::get_settings,
 };
 use sqlite::{create_history, establish_connection};

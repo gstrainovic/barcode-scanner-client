@@ -9,6 +9,7 @@ pub enum Type {
     ZuKurz,
     DhlLeitcode,
     BereitsGesendet,
+    KeineNummern,
     Ok,
 }
 
@@ -56,6 +57,14 @@ pub fn ok() -> Error {
         message: "OK".to_string(),
         status: Status::Ok,
         error_type: Type::Ok,
+    }
+}
+
+pub fn no_numbers() -> Error {
+    Error {
+        message: "@C03Barcode ist seltsam, keine Nummers".to_string(),
+        status: Status::Warn,
+        error_type: Type::KeineNummern,
     }
 }
 

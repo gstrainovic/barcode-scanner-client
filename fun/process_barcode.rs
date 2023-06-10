@@ -3,7 +3,11 @@ use fltk::{
     prelude::{BrowserExt, InputExt, WidgetExt},
 };
 use notify_rust::Notification;
-use req::{get_ausnahmen::get_ausnahmen, get_settings::get_settings, get_leitcodes::get_leitcodes, get_leitcodes::LeitcodeBuchstabe, get_leitcodes::Leitcode, get_leitcodes::DataBuchstaben, get_leitcodes::Data, get_leitcodes::IdAtr, get_leitcodes::IdAtrBuchstaben};
+use req::{
+    get_ausnahmen::get_ausnahmen, get_leitcodes::get_leitcodes, get_leitcodes::Data,
+    get_leitcodes::DataBuchstaben, get_leitcodes::IdAtr, get_leitcodes::IdAtrBuchstaben,
+    get_leitcodes::Leitcode, get_leitcodes::LeitcodeBuchstabe, get_settings::get_settings,
+};
 use sqlite::{create_history, establish_connection};
 
 use crate::{errors, send_barcode::send_barcode, ERROR_STATUS};
@@ -51,7 +55,6 @@ pub fn process_barcode(
 
     if settings.Ausnahmen_Aktiv {
         let ausnahmen = get_ausnahmen(&jwt);
-
         // if barcode ends with a string from barcode_ausnahmen, then send it directly to server
         for barcode_ausnahme in ausnahmen.unwrap().data {
             if barcode_lower.ends_with(barcode_ausnahme.attributes.Barcode.to_lowercase().as_str())
@@ -85,26 +88,23 @@ pub fn process_barcode(
         // ¨C140327628203`99000900033018
         // 0327642113+99..
 
-        let leitcodes : Vec<IdAtr> = get_leitcodes(&jwt).unwrap().data;
+        let leitcodes: Vec<IdAtr> = get_leitcodes(&jwt).unwrap().data;
 
         for idatr in leitcodes {
-            let attribute : Leitcode = idatr.attributes;
-            let mindest_laenge : i8 = attribute.Mindeslaenge;
-            
-            if barcode_lower.len() > mindest_laenge as usize {
+            let attribute: Leitcode = idatr.attributes;
+            if barcode_lower.len() > attribute.Mindeslaenge as usize {
                 let beschreibung = attribute.Beschreibung;
-                let dataBuchstaben : Vec<IdAtrBuchstaben> = attribute.Leitcode_Buchstabe.data;
-                for buchstabe in dataBuchstaben {
-                    let buchstaben : LeitcodeBuchstabe = buchstabe.attributes;
-                    let buchstabe : String = buchstaben.Buchstabe;
-                    let position : usize = buchstaben.Position_Null_Beginnend as usize;
+                let data_buchstaben: Vec<IdAtrBuchstaben> = attribute.Leitcode_Buchstabe.data;
+                for buchstabe_atr_id in data_buchstaben {
+                    let buchstabe_attr: LeitcodeBuchstabe = buchstabe_atr_id.attributes;
+                    let position: usize = buchstabe_attr.Position_Null_Beginnend as usize;
 
                     // does the barcode match witch buchstabe at position?
                     println!("barcode_lower{:?}", barcode_lower);
                     if barcode_lower.len() > position {
                         let barcode_buchstabe = barcode_lower.chars().nth(position).unwrap();
                         println!("barcode_buchstabe{:?}", barcode_buchstabe);
-                        if buchstabe == barcode_buchstabe.to_string() {
+                        if buchstabe_attr.Buchstabe == barcode_buchstabe.to_string() {
                             Notification::new()
                                 .summary(&format!(
                                     "Barcode Scanner: {} als {} erkannt, nicht gesendet",
@@ -117,38 +117,32 @@ pub fn process_barcode(
                         }
                     }
                 }
-                
             }
-
-
-
         }
-
-        // if barcode_lower.len() > 14 {
-        //     let f = barcode_lower.chars().nth(0).unwrap();
-        //     let s = barcode_lower.chars().nth(1).unwrap();
-        //     let plus = barcode_lower.chars().nth(10).unwrap();
-        //     let apostrophe = barcode_lower.chars().nth(14).unwrap();
-        //     if (f == '¨' && s == 'c' && apostrophe == '`') || plus == '+' {
-        //         Notification::new()
-        //             .summary(&format!(
-        //                 "Barcode Scanner: {} als DHL Leitcode erkannt, nicht gesendet",
-        //                 barcode_c
-        //             ))
-        //             .show()
-        //             .unwrap();
-        //         history_add(errors::leitcode(), &barcode_c, history);
-        //         return;
-        //     }
-        // }
     }
 
     // duplicate check
     unsafe {
         if !BARCODES.contains(&barcode_lower) {
             BARCODES.push(barcode_lower.clone());
-            send_barcode(barcode_lower, user_id, &jwt, lager_user_ids);
-            history_add(errors::ok(), &barcode_c, history);
+            send_barcode(barcode_lower.clone(), user_id, &jwt, lager_user_ids);
+
+            // does the barcode contain a number?
+            let mut contains_number = false;
+            for c in barcode_lower.chars() {
+                if c.is_numeric() {
+                    contains_number = true;
+                    break;
+                }
+            }
+
+            let err = if contains_number {
+                errors::ok()
+            } else {
+                errors::no_numbers()
+            };
+
+            history_add(err, &barcode_c, history);
         } else {
             Notification::new()
                 .summary(&format!(

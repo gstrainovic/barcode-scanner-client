@@ -62,7 +62,7 @@ pub fn ok() -> Error {
 
 pub fn no_numbers() -> Error {
     Error {
-        message: "@C03Barcode ist seltsam, keine Nummers".to_string(),
+        message: "@C03Barcode seltsam".to_string(),
         status: Status::Warn,
         error_type: Type::KeineNummern,
     }

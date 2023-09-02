@@ -35,6 +35,11 @@ static mut USER_ID : String = String::new();
 
 fn main() {
     hide_console_window();
+
+    // check the internet connection to github 
+    // let github_connection = update().check_connection();
+
+
     update().unwrap();
     
     // globals

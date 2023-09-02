@@ -1,0 +1,4 @@
+[ ] on login save all users to sqlite
+[ ] if server is down then save the barcodes to sqlite
+[ ] if server is online then send all barcodes from sqlite to the server
+[ ] log all errors and send email with errors

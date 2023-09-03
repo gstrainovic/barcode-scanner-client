@@ -6,7 +6,7 @@ use serde_json::{json, Map, Value};
 #[derive(Deserialize, Debug)]
 pub struct User {
     pub username: String,
-    pub id: i16,
+    pub id: i32,
     pub rolle: String,
 }
 

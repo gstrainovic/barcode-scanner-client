@@ -79,7 +79,8 @@ pub fn group1(
                         benutzername_output.set_value(&username);
                         rolle_output.set_value(user.as_ref().unwrap().rolle.as_str());
 
-                        unsafe { USER_ID = user.as_ref().unwrap().id.to_string() };
+                        // unsafe { USER_ID = user.as_ref().unwrap().id.to_string() };
+                        unsafe { USER_ID = user.as_ref().unwrap().id };
 
                         Notification::new()
                             .summary(&format!(

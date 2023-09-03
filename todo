@@ -1,4 +1,3 @@
-[ ] on login save all users to sqlite
-[ ] if server is down then save the barcodes to sqlite
-[ ] if server is online then send all barcodes from sqlite to the server
-[ ] log all errors and send email with errors
+[x] log all errors and send email with errors
+[x] save also synched status and user_id to sqlite
+[ ] on start check which history entries is needed to synch

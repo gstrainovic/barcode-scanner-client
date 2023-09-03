@@ -18,6 +18,7 @@ pub fn history_add(
     status: errors::Error,
     barcode_c: &str,
     mut history: fltk::browser::HoldBrowser,
+    nuser_id: i32,
 ) {
     let utc_time_string = chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
     history.add(&format!(
@@ -33,14 +34,15 @@ pub fn history_add(
         &status.message,
         &barcode_c,
         &utc_time_string,
+        &nuser_id,
     );
 }
 
 pub fn process_barcode(
     i: &mut input::Input,
-    user_id: String,
+    user_id: i32,
     jwt: String,
-    lager_user_ids: Vec<i16>,
+    lager_user_ids: Vec<i32>,
     history: fltk::browser::HoldBrowser,
 ) {
     i.activate();
@@ -63,6 +65,7 @@ pub fn process_barcode(
                     errors::ausnahme(barcode_ausnahme.attributes.Bedeutung),
                     &barcode_c,
                     history,
+                    user_id
                 );
                 return;
             }
@@ -77,7 +80,7 @@ pub fn process_barcode(
             ))
             .show()
             .unwrap();
-        history_add(errors::zu_kurz(), &barcode_c, history);
+        history_add(errors::zu_kurz(), &barcode_c, history, user_id);
         return;
     }
 
@@ -111,7 +114,7 @@ pub fn process_barcode(
                                 ))
                                 .show()
                                 .unwrap();
-                            history_add(errors::leitcode(beschreibung), &barcode_c, history);
+                            history_add(errors::leitcode(beschreibung), &barcode_c, history, user_id);
                             return;
                         }
                     }
@@ -141,7 +144,7 @@ pub fn process_barcode(
                 errors::no_numbers()
             };
 
-            history_add(err, &barcode_c, history);
+            history_add(err, &barcode_c, history, user_id);
         } else {
             Notification::new()
                 .summary(&format!(
@@ -151,7 +154,8 @@ pub fn process_barcode(
                 .show()
                 .unwrap();
 
-            history_add(errors::bereits_gesendet(), &barcode_c, history);
+            history_add(errors::bereits_gesendet(), &barcode_c, history, user_id
+        );
             return;
         }
     }

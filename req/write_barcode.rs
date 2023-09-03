@@ -16,9 +16,9 @@ pub struct BarcodeData {
 #[tokio::main]
 pub async fn write_barcode(
     barcode: String,
-    user: String,
+    user: i32,
     jwt: &str,
-    lager_user_ids: Vec<i16>,
+    lager_user_ids: Vec<i32>,
 ) -> Result<BarcodeData, reqwest::Error> {
 
     let url = format!("{}/api/barcodes", STRAPI_URL);

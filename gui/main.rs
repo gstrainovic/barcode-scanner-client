@@ -29,9 +29,9 @@ mod win;
 type HWND = *mut std::os::raw::c_void;
 pub static mut WINDOW: HWND = std::ptr::null_mut();
 
-static mut LAGER_USER_IDS: Vec<i16> = Vec::new();
+static mut LAGER_USER_IDS: Vec<i32> = Vec::new();
 static mut GJWT: String = String::new();
-static mut USER_ID: String = String::new();
+static mut USER_ID: i32 = 0;
 
 fn main() {
     let _guard = sentry::init(("https://d072194fec4899f3b5b2331bc68ac492@o4505812863418368.ingest.sentry.io/4505812867547136", sentry::ClientOptions {
@@ -40,11 +40,13 @@ fn main() {
       }));
 
     hide_console_window();
-
-    // check the internet connection to github
-    // let github_connection = update().check_connection();
-
     update().unwrap();
+
+    // test the sync function
+    let result = fun::sync::sync();
+
+    // print the result
+    println!("sync result: {}", result);
 
     // globals
     let mitarbeiter1_output = output::Output::default().with_label("Mitarbeiter 1");

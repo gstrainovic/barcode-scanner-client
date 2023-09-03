@@ -6,5 +6,7 @@ diesel::table! {
         status -> Text,
         barcode -> Text,
         timestamp -> Text,
+        synced -> Bool,
+        user_id -> Integer,
     }
 }

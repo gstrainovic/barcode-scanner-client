@@ -5,7 +5,7 @@ use diesel::prelude::*;
 use std::{fs, error::Error};
 use crate::models::{NewHistory, History};
 use std::path::Path;
-use schema::history;
+use schema::history::{self};
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("migrations");
 
@@ -34,11 +34,13 @@ pub fn establish_connection() -> SqliteConnection {
     conn
 }
 
-pub fn create_history<'a>(conn: &mut SqliteConnection, status: &'a str, barcode: &'a str, timestamp: &'a str) -> History {
+pub fn create_history<'a>(conn: &mut SqliteConnection, status: &'a str, barcode: &'a str, timestamp: &'a str, nuser_id: &'a i32) -> History {
     let new_history = NewHistory {
         status,
         barcode,
         timestamp,
+        synced: &false,
+        user_id: nuser_id,
     };
 
     diesel::insert_into(history::table)

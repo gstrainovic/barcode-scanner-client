@@ -1,0 +1,3 @@
+-- -- Your SQL goes here
+ALTER TABLE history ADD COLUMN synced BOOLEAN DEFAULT false NOT NULL;
+ALTER TABLE history ADD COLUMN user_id INTEGER DEFAULT 0 NOT NULL;

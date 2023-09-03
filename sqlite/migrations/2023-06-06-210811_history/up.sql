@@ -4,7 +4,5 @@ CREATE TABLE IF NOT EXISTS history
     id INTEGER PRIMARY KEY NOT NULL,
     status TEXT NOT NULL,
     barcode TEXT NOT NULL,
-    timestamp TEXT NOT NULL,
-    synced BOOLEAN DEFAULT false NOT NULL,
-    user_id INTEGER NOT NULL
+    timestamp TEXT NOT NULL
 );

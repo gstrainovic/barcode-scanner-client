@@ -1,3 +1,5 @@
 [x] log all errors and send email with errors
 [x] save also synched status and user_id to sqlite
+[ ] offline modus
+[ ] set back to online modus
 [ ] on start check which history entries is needed to synch

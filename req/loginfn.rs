@@ -10,7 +10,6 @@ pub struct User {
     pub rolle: String,
 }
 
-
 #[derive(Deserialize, Debug)]
 pub struct JWT {
     pub jwt: Option<String>,

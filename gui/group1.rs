@@ -1,8 +1,9 @@
-use fltk::{group, button, input, prelude::{WidgetExt, GroupExt, InputExt, MenuExt}, frame, enums, dialog};
+use fltk::{group, button, input, prelude::{WidgetExt, GroupExt, InputExt, MenuExt, WidgetBase}, frame, enums, dialog, examples::wizard};
 use fun::{looper::looper, username_camelcase::username_camelcase};
 use notify_rust::Notification;
 use req::{loginfn::{JWT, loginfn}, get_lager_users::get_lager_users};
-use crate::{logo_and_version::logo_and_version, GJWT, USER_ID};
+use crate::{logo_and_version::logo_and_version, GJWT, USER_ID, OFFLINE};
+use fltk::menu::Choice;
 
 pub fn group1(
     mut wizard: group::Wizard,
@@ -44,7 +45,8 @@ pub fn group1(
 
     login_button.set_callback(move |_| {
         let username = username_camelcase(user_input.value());
-        let res = loginfn(username, password.value());
+        let res = loginfn(username.clone(), password.value());
+        let mut rolle = String::new();
         match res {
             Ok(j) => {
                 match j {
@@ -56,7 +58,7 @@ pub fn group1(
                         unsafe { GJWT = jwt.unwrap() };
                         let gjwt = unsafe { GJWT.clone() };
                         let username = user.as_ref().unwrap().username.clone();
-                        let rolle = user.as_ref().unwrap().rolle.clone();
+                        rolle = user.as_ref().unwrap().rolle.clone();
                         let lager_users = get_lager_users(gjwt).unwrap()
                             .into_iter()
                             .filter(|u| u.username != username)
@@ -65,19 +67,6 @@ pub fn group1(
                             lager_choice1.add_choice(&user.username);
                             lager_choice2.add_choice(&user.username);
                         }
-                        if rolle == "Lager" {
-                            wizard.next();
-                        } else {
-                            mitarbeiter1_output.set_value("");
-                            mitarbeiter2_output.set_value("");
-                            mitarbeiter1_output.hide();
-                            mitarbeiter2_output.hide();
-                            wizard.next();
-                            wizard.next();
-                        }
-
-                        benutzername_output.set_value(&username);
-                        rolle_output.set_value(user.as_ref().unwrap().rolle.as_str());
 
                         // unsafe { USER_ID = user.as_ref().unwrap().id.to_string() };
                         unsafe { USER_ID = user.as_ref().unwrap().id };
@@ -140,9 +129,57 @@ pub fn group1(
                 }
             }
             Err(e) => {
-                println!("Error e: {}", e);
-                dialog::alert_default(&e.to_string());
+                if e.to_string().contains("os error 10061") {
+                    // dialog::alert_default("Server nicht erreichbar");
+                    println!("Error e: {}", e);
+
+                    // ask is user lager or production
+                    // let mut dlg = Choice::new(0, 0, 400, 300, "Server nicht erreichbar");
+                    
+                    let choice = dialog::choice2_default("Server nicht erreichbar, arbeitest du in der Produktion oder im Lager?", "Abbrechen", "Produktion", "Lager");
+                    println!("{}", choice.unwrap());
+
+                    if choice.unwrap() == 1 {
+                        rolle = "Produktion".to_string();
+                    } else if choice.unwrap() == 2 {
+                        rolle = "Lager".to_string();
+                    } else {
+                        return;
+                    }
+                } else {
+                    println!("Error e: {}", e);
+                    dialog::alert_default(&e.to_string());
+                }
+
             }
         }
+        benutzername_output.set_value(&username);
+        rolle_output.set_value(&rolle);
+
+        if rolle == "Lager" {
+
+            // ask for mitarbeiter1 name and mitarbeiter2 name
+            let mitarbeiter1 = dialog::input_default("Lager Mitarbeiter 1", "");
+            let mitarbeiter2 = dialog::input_default("Lager Mitarbeiter 2", "");
+
+            // check the Option<String> mitarbeiter1 and mitarbeiter2
+            if mitarbeiter1.is_none() || mitarbeiter2.is_none() {
+                dialog::alert_default("Mitarbeiter 1 und Mitarbeiter 2 sind Pflichtfelder");
+                return;
+            }
+            mitarbeiter1_output.set_value(&mitarbeiter1.unwrap());
+            mitarbeiter2_output.set_value(&mitarbeiter2.unwrap());
+            wizard.next();
+            wizard.next();
+        } else {
+            mitarbeiter1_output.set_value("");
+            mitarbeiter2_output.set_value("");
+            mitarbeiter1_output.hide();
+            mitarbeiter2_output.hide();
+            wizard.next();
+            wizard.next();
+        }
+
+        wizard.next();
     });
 }

@@ -32,6 +32,7 @@ pub static mut WINDOW: HWND = std::ptr::null_mut();
 static mut LAGER_USER_IDS: Vec<i32> = Vec::new();
 static mut GJWT: String = String::new();
 static mut USER_ID: i32 = 0;
+static mut OFFLINE: bool = false;
 
 fn main() {
     let _guard = sentry::init(("https://d072194fec4899f3b5b2331bc68ac492@o4505812863418368.ingest.sentry.io/4505812867547136", sentry::ClientOptions {

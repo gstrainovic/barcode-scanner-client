@@ -5,7 +5,7 @@ use fltk::{
     prelude::{GroupExt, InputExt, MenuExt, WidgetExt},
 };
 use req::get_lager_users::get_lager_users;
-use sqlite::{get_lager_users as sq_get_lager_users, establish_connection};
+use sqlite::get_lager_users as sq_get_lager_users;
 use req::loginfn::User;
 
 use crate::{logo_and_version::logo_and_version, LAGER_USER_IDS, GJWT};
@@ -111,7 +111,7 @@ pub fn group2(
             GJWT == ""
         } {
             // load lager users from sqlite
-            let sq_lager_users = sq_get_lager_users(&mut establish_connection());
+            let sq_lager_users = sq_get_lager_users();
             //transform sqlite users to reqwest users
             for sq_lager_user in sq_lager_users {
                 let lager_user = User {

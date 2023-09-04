@@ -11,7 +11,7 @@ use req::{
     get_users::get_users,
     loginfn::{loginfn, JWT},
 };
-use sqlite::{update_users, establish_connection, get_lager_users as sq_get_lager_users};
+use sqlite::{update_users, get_lager_users as sq_get_lager_users};
 use req::loginfn::User;
 
 pub fn group1(
@@ -71,7 +71,7 @@ pub fn group1(
 
                         let users = get_users(gjwt.clone()).unwrap();
                         if users.len() > 0 {
-                            update_users(&mut establish_connection(), users);
+                            update_users(users);
                         }
                         // unsafe { USER_ID = user.as_ref().unwrap().id.to_string() };
                         unsafe { USER_ID = user.as_ref().unwrap().id };
@@ -145,8 +145,7 @@ pub fn group1(
                     //   ::Message::new(0, 0, 400, 300, "Server nicht erreichbar, speichere die Daten lokal, wird beim nächsten Start synchronisiert");
 
                     //load the user from the sqlite db
-                    let conn = &mut establish_connection();
-                    let user = sqlite::get_user(conn, username.clone());
+                    let user = sqlite::get_user(username.clone());
 
                     // check if the user exists in the sqlite db, abbort if not
                     if user.is_none() {
@@ -171,7 +170,7 @@ pub fn group1(
             GJWT == ""
         } {
             // load lager users from sqlite
-            let sq_lager_users = sq_get_lager_users(&mut establish_connection());
+            let sq_lager_users = sq_get_lager_users();
             //transform sqlite users to reqwest users
             for sq_lager_user in sq_lager_users {
                 let lager_user = User {

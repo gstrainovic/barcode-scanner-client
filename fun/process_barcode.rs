@@ -7,7 +7,7 @@ use req::{
     get_ausnahmen::get_ausnahmen, get_leitcodes::get_leitcodes, get_leitcodes::IdAtr, get_leitcodes::IdAtrBuchstaben,
     get_leitcodes::Leitcode, get_leitcodes::LeitcodeBuchstabe, get_settings::get_settings, 
 };
-use sqlite::{create_history, establish_connection, get_settings as get_settings_sqlite};
+use sqlite::{create_history, get_settings as get_settings_sqlite, update_settings};
 use req::get_settings::Einstellungen;
 
 use crate::{errors, send_barcode::send_barcode, ERROR_STATUS};
@@ -31,7 +31,6 @@ pub fn history_add(
 
     // save also to sqlite
     create_history(
-        &mut establish_connection(),
         &status.message,
         &barcode_c,
         &utc_time_string,
@@ -60,9 +59,10 @@ pub fn process_barcode(
     };
 
     if jwt.is_empty() {
-        settings = get_settings_sqlite(&mut establish_connection())
+        settings = get_settings_sqlite()
     } else {
         settings = get_settings(&jwt).unwrap().data.attributes;
+        update_settings(get_settings(&jwt).unwrap().data.attributes);
     }
 
 

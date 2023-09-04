@@ -7,7 +7,7 @@ use crate::models::{NewHistory, History, User as sqliteUser};
 
 use std::path::Path;
 use schema::history::{self};
-use schema::users::{self};
+// use schema::users::{self};
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("migrations");
 use req::loginfn::User;
@@ -38,7 +38,9 @@ pub fn establish_connection() -> SqliteConnection {
     conn
 }
 
-pub fn create_history<'a>(conn: &mut SqliteConnection, status: &'a str, barcode: &'a str, timestamp: &'a str, nuser_id: &'a i32) -> History {
+pub fn create_history<'a>(status: &'a str, barcode: &'a str, timestamp: &'a str, nuser_id: &'a i32) -> History {
+    let conn = &mut establish_connection();
+    
     let new_history = NewHistory {
         status,
         barcode,
@@ -55,7 +57,9 @@ pub fn create_history<'a>(conn: &mut SqliteConnection, status: &'a str, barcode:
     history::table.order(history::id.desc()).first(conn).unwrap()
 }
 
-pub fn load_history(conn: &mut SqliteConnection) -> Vec<History> {
+pub fn load_history() -> Vec<History> {
+    let conn = &mut establish_connection();
+
     history::table
         .order(history::id.desc())
         .limit(1000)
@@ -63,8 +67,10 @@ pub fn load_history(conn: &mut SqliteConnection) -> Vec<History> {
         .expect("Error loading history")
 }
 
-pub fn update_users(conn: &mut SqliteConnection, users_ar: Vec<User>) {
+pub fn update_users(users_ar: Vec<User>) {
     use schema::users::dsl::*;
+
+    let conn = &mut establish_connection();
 
     diesel::delete(users).execute(conn).unwrap();
 
@@ -82,9 +88,10 @@ pub fn update_users(conn: &mut SqliteConnection, users_ar: Vec<User>) {
     }
 }
 
-pub fn get_user(conn: &mut SqliteConnection, username_str: String) -> Option<sqliteUser> {
+pub fn get_user(username_str: String) -> Option<sqliteUser> {
     use schema::users::dsl::*;
 
+    let conn = &mut establish_connection();
     let user = users
         .filter(username.eq(username_str))
         .first::<sqliteUser>(conn)
@@ -94,8 +101,10 @@ pub fn get_user(conn: &mut SqliteConnection, username_str: String) -> Option<sql
     user
 }
 
-pub fn get_lager_users(conn: &mut SqliteConnection) -> Vec<sqliteUser> {
+pub fn get_lager_users() -> Vec<sqliteUser> {
     use schema::users::dsl::*;
+
+    let conn = &mut establish_connection();
 
     let lager_users = users
         .filter(rolle.eq("Lager"))
@@ -105,8 +114,10 @@ pub fn get_lager_users(conn: &mut SqliteConnection) -> Vec<sqliteUser> {
     lager_users
 }
 
-pub  fn get_settings(conn: &mut SqliteConnection) -> Einstellungen {
+pub  fn get_settings() -> Einstellungen {
     use schema::einstellungen::dsl::*;
+
+    let conn = &mut establish_connection();
 
     let settings = einstellungen
         .first::<models::Einstellungen>(conn)
@@ -120,4 +131,26 @@ pub  fn get_settings(conn: &mut SqliteConnection) -> Einstellungen {
     };
 
     settings
+}
+
+pub fn update_settings(settings: Einstellungen) {
+    use schema::einstellungen::dsl::*;
+
+    let conn = &mut establish_connection();
+
+    diesel::delete(einstellungen).execute(conn).unwrap();
+
+    let new_settings = models::Einstellungen {
+        id: 1,
+        barcode_mindestlaenge: settings.Barcode_Mindestlaenge,
+        leitcodes_aktiv: settings.Leitcodes_Aktiv,
+        ausnahmen_aktiv: settings.Ausnahmen_Aktiv,
+    };
+
+
+    diesel::insert_into(einstellungen)
+        .values(&new_settings)
+        .execute(conn)
+        .expect("Error saving new settings");
+    
 }

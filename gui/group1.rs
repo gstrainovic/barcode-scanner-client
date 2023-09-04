@@ -1,15 +1,14 @@
-use crate::{logo_and_version::logo_and_version, GJWT, OFFLINE, USER_ID};
-use fltk::menu::Choice;
+use crate::{logo_and_version::logo_and_version, GJWT, USER_ID};
 use fltk::{
     button, dialog, enums,
-    examples::wizard,
     frame, group, input,
-    prelude::{GroupExt, InputExt, MenuExt, WidgetBase, WidgetExt},
+    prelude::{GroupExt, InputExt, MenuExt, WidgetExt},
 };
 use fun::{looper::looper, username_camelcase::username_camelcase};
 use notify_rust::Notification;
 use req::{
     get_lager_users::get_lager_users,
+    get_users::get_users,
     loginfn::{loginfn, JWT},
 };
 
@@ -68,7 +67,7 @@ pub fn group1(
                         let username = user.as_ref().unwrap().username.clone();
                         rolle = user.as_ref().unwrap().rolle.clone();
 
-                        let users = get_lager_users(gjwt.clone()).unwrap();
+                        let users = get_users(gjwt.clone()).unwrap();
                         println!("users: {:?}", users);
 
                         let lager_users = get_lager_users(gjwt)

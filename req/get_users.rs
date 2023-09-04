@@ -1,9 +1,8 @@
 use config::STRAPI_URL;
 use crate::loginfn::User;
 
-// get all users with the role 'Lager'
 #[tokio::main]
-pub async fn get_lager_users(jwt: String) -> Result<Vec<User>, reqwest::Error> {
+pub async fn get_users(jwt: String) -> Result<Vec<User>, reqwest::Error> {
     let url = format!("{}{}", STRAPI_URL, "/api/users");
 
     let client = reqwest::Client::new();

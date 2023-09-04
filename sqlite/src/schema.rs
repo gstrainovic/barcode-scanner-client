@@ -10,3 +10,13 @@ diesel::table! {
         user_id -> Integer,
     }
 }
+
+diesel::table! {
+    users (strapi_id) {
+        strapi_id -> Integer,
+        username -> Text,
+        rolle -> Text,
+    }
+}
+
+

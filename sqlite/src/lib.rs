@@ -3,11 +3,13 @@ pub mod schema;
 
 use diesel::prelude::*;
 use std::{fs, error::Error};
-use crate::models::{NewHistory, History};
+use crate::models::{NewHistory, History, User};
 use std::path::Path;
 use schema::history::{self};
+use schema::users::{self};
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("migrations");
+
 
 fn run_migrations<DB: diesel::backend::Backend>(connection: &mut impl MigrationHarness<DB>) -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
     // This will run the necessary migrations.
@@ -57,4 +59,17 @@ pub fn load_history(conn: &mut SqliteConnection) -> Vec<History> {
         .limit(1000)
         .load::<History>(conn)
         .expect("Error loading history")
+}
+
+pub fn update_users(conn: &mut SqliteConnection, users_ar: Vec<User>) {
+    use schema::users::dsl::*;
+
+    diesel::delete(users).execute(conn).unwrap();
+
+    for user in users_ar {
+        diesel::insert_into(users)
+            .values(&user)
+            .execute(conn)
+            .expect("Error saving new user");
+    }
 }

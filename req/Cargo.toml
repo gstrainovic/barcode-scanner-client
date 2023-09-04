@@ -12,6 +12,7 @@ serde_json = "1.0.64"
 serde = { version = "1.0.125", features = ["derive"] }
 serde_yaml = "0.9.13"
 config = { path = "../config" }
+# sqlite = { path = "../sqlite" }
 
 [lib]
 name = "req"

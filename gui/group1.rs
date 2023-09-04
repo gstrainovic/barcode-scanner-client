@@ -11,6 +11,8 @@ use req::{
     get_users::get_users,
     loginfn::{loginfn, JWT},
 };
+use sqlite::{update_users, establish_connection, get_lager_users as sq_get_lager_users};
+use req::loginfn::User;
 
 pub fn group1(
     mut wizard: group::Wizard,
@@ -68,18 +70,9 @@ pub fn group1(
                         rolle = user.as_ref().unwrap().rolle.clone();
 
                         let users = get_users(gjwt.clone()).unwrap();
-                        println!("users: {:?}", users);
-
-                        let lager_users = get_lager_users(gjwt)
-                            .unwrap()
-                            .into_iter()
-                            .filter(|u| u.username != username)
-                            .collect::<Vec<_>>();
-                        for user in lager_users.iter() {
-                            lager_choice1.add_choice(&user.username);
-                            lager_choice2.add_choice(&user.username);
+                        if users.len() > 0 {
+                            update_users(&mut establish_connection(), users);
                         }
-
                         // unsafe { USER_ID = user.as_ref().unwrap().id.to_string() };
                         unsafe { USER_ID = user.as_ref().unwrap().id };
 
@@ -145,24 +138,23 @@ pub fn group1(
                     // dialog::alert_default("Server nicht erreichbar");
                     println!("Error e: {}", e);
 
-                    // ask is user lager or production
-                    // let mut dlg = Choice::new(0, 0, 400, 300, "Server nicht erreichbar");
-
-                    let choice = dialog::choice2_default(
-                        "Server nicht erreichbar, arbeitest du in der Produktion oder im Lager?",
-                        "Abbrechen",
-                        "Produktion",
-                        "Lager",
+                    // inform the user that the server is not reachable
+                    dialog::message_default(
+                        "Server nicht erreichbar, speichere die Daten lokal, wird beim nächsten Start synchronisiert",
                     );
-                    println!("{}", choice.unwrap());
+                    //   ::Message::new(0, 0, 400, 300, "Server nicht erreichbar, speichere die Daten lokal, wird beim nächsten Start synchronisiert");
 
-                    if choice.unwrap() == 1 {
-                        rolle = "Produktion".to_string();
-                    } else if choice.unwrap() == 2 {
-                        rolle = "Lager".to_string();
-                    } else {
+                    //load the user from the sqlite db
+                    let conn = &mut establish_connection();
+                    let user = sqlite::get_user(conn, username.clone());
+
+                    // check if the user exists in the sqlite db, abbort if not
+                    if user.is_none() {
+                        dialog::alert_default("Benutzer nicht in der lokalen Datenbank vorhanden");
                         return;
                     }
+
+                    rolle = user.unwrap().rolle;
                 } else {
                     println!("Error e: {}", e);
                     dialog::alert_default(&e.to_string());
@@ -173,22 +165,60 @@ pub fn group1(
         benutzername_output.set_value(&username);
         rolle_output.set_value(&rolle);
 
+        let mut lager_users: Vec<User> = Vec::new();
+
+        if unsafe {
+            GJWT == ""
+        } {
+            // load lager users from sqlite
+            let sq_lager_users = sq_get_lager_users(&mut establish_connection());
+            //transform sqlite users to reqwest users
+            for sq_lager_user in sq_lager_users {
+                let lager_user = User {
+                    id: sq_lager_user.strapi_id,
+                    username: sq_lager_user.username,
+                    rolle: sq_lager_user.rolle,
+                };
+                lager_users.push(lager_user);
+            }
+
+        } else {
+            lager_users = get_lager_users(unsafe { GJWT.clone() })
+            .unwrap()
+            // .into_iter()
+            // .filter(|u| u.username != username)
+            // .collect::<Vec<_>>();
+
+        }
+
+        // remove same user from lager_users
+        lager_users = lager_users
+            .into_iter()
+            .filter(|u| u.username != username)
+            .collect::<Vec<_>>();
+
+        for user in lager_users.iter() {
+            lager_choice1.add_choice(&user.username);
+            lager_choice2.add_choice(&user.username);
+        }
+
         // if GJWT then:
         if unsafe {GJWT.is_empty() } {
             if rolle == "Lager" {
-                // ask for mitarbeiter1 name and mitarbeiter2 name
-                let mitarbeiter1 = dialog::input_default("Lager Mitarbeiter 1", "");
-                let mitarbeiter2 = dialog::input_default("Lager Mitarbeiter 2", "");
+                // // ask for mitarbeiter1 name and mitarbeiter2 name
+                // let mitarbeiter1 = dialog::input_default("Lager Mitarbeiter 1", "");
+                // let mitarbeiter2 = dialog::input_default("Lager Mitarbeiter 2", "");
 
-                // check the Option<String> mitarbeiter1 and mitarbeiter2
-                if mitarbeiter1.is_none() || mitarbeiter2.is_none() {
-                    dialog::alert_default("Mitarbeiter 1 und Mitarbeiter 2 sind Pflichtfelder");
-                    return;
-                }
-                mitarbeiter1_output.set_value(&mitarbeiter1.unwrap());
-                mitarbeiter2_output.set_value(&mitarbeiter2.unwrap());
+                // // check the Option<String> mitarbeiter1 and mitarbeiter2
+                // if mitarbeiter1.is_none() || mitarbeiter2.is_none() {
+                //     dialog::alert_default("Mitarbeiter 1 und Mitarbeiter 2 sind Pflichtfelder");
+                //     return;
+                // }
+                // mitarbeiter1_output.set_value(&mitarbeiter1.unwrap());
+                // mitarbeiter2_output.set_value(&mitarbeiter2.unwrap());
+                // wizard.next();
                 wizard.next();
-                wizard.next();
+                return;
             } else {
                 mitarbeiter1_output.set_value("");
                 mitarbeiter2_output.set_value("");
@@ -196,6 +226,7 @@ pub fn group1(
                 mitarbeiter2_output.hide();
                 wizard.next();
                 wizard.next();
+                return;
             }
         }
 

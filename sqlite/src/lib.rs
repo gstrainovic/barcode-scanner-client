@@ -3,13 +3,17 @@ pub mod schema;
 
 use diesel::prelude::*;
 use std::{fs, error::Error};
-use crate::models::{NewHistory, History, User};
+use crate::models::{NewHistory, History, User as sqliteUser};
+
 use std::path::Path;
 use schema::history::{self};
 use schema::users::{self};
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("migrations");
-
+use req::loginfn::User;
+use req::get_settings::EinstellungenData;
+use req::get_settings::Einstellungen;
+use req::get_settings::IdAtr;
 
 fn run_migrations<DB: diesel::backend::Backend>(connection: &mut impl MigrationHarness<DB>) -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
     // This will run the necessary migrations.
@@ -67,9 +71,63 @@ pub fn update_users(conn: &mut SqliteConnection, users_ar: Vec<User>) {
     diesel::delete(users).execute(conn).unwrap();
 
     for user in users_ar {
+        let new_user = sqliteUser {
+            strapi_id: user.id,
+            username: user.username,
+            rolle: user.rolle,
+        };
+
         diesel::insert_into(users)
-            .values(&user)
+            .values(&new_user)
             .execute(conn)
             .expect("Error saving new user");
     }
+}
+
+pub fn get_user(conn: &mut SqliteConnection, username_str: String) -> Option<sqliteUser> {
+    use schema::users::dsl::*;
+
+    let user = users
+        .filter(username.eq(username_str))
+        .first::<sqliteUser>(conn)
+        .optional()
+        .expect("Error loading user");
+
+    user
+}
+
+pub fn get_lager_users(conn: &mut SqliteConnection) -> Vec<sqliteUser> {
+    use schema::users::dsl::*;
+
+    let lager_users = users
+        .filter(rolle.eq("Lager"))
+        .load::<sqliteUser>(conn)
+        .expect("Error loading lager users");
+
+    lager_users
+}
+
+pub  fn get_settings(conn: &mut SqliteConnection) -> EinstellungenData {
+    use schema::einstellungen::dsl::*;
+
+    let settings = einstellungen
+        .first::<models::Einstellungen>(conn)
+        .expect("Error loading settings");
+
+    // transform to Einstellungen
+    let settings = Einstellungen {
+        Barcode_Mindestlaenge: settings.barcode_mindestlaenge,
+        Leitcodes_Aktiv: settings.leitcodes_aktiv,
+        Ausnahmen_Aktiv: settings.ausnahmen_aktiv,
+    };
+
+    // transform to EinstellungenData
+    let settings = EinstellungenData {
+        data: IdAtr {
+            id: 1,
+            attributes: settings,
+        },
+    };
+
+    settings
 }

@@ -4,7 +4,9 @@ use fltk::{
     output::Output,
     prelude::{GroupExt, InputExt, MenuExt, WidgetExt},
 };
-use req::{get_lager_users::get_lager_users};
+use req::get_lager_users::get_lager_users;
+use sqlite::{get_lager_users as sq_get_lager_users, establish_connection};
+use req::loginfn::User;
 
 use crate::{logo_and_version::logo_and_version, LAGER_USER_IDS, GJWT};
 
@@ -103,7 +105,26 @@ pub fn group2(
             return;
         }
 
-        let lager_users = get_lager_users(unsafe { GJWT.clone() }).unwrap();
+        let mut lager_users: Vec<User> = Vec::new();
+
+        if unsafe {
+            GJWT == ""
+        } {
+            // load lager users from sqlite
+            let sq_lager_users = sq_get_lager_users(&mut establish_connection());
+            //transform sqlite users to reqwest users
+            for sq_lager_user in sq_lager_users {
+                let lager_user = User {
+                    id: sq_lager_user.strapi_id,
+                    username: sq_lager_user.username,
+                    rolle: sq_lager_user.rolle,
+                };
+                lager_users.push(lager_user);
+            }
+        } else {
+            lager_users = get_lager_users(unsafe { GJWT.clone() }).unwrap();
+        }
+
         unsafe { LAGER_USER_IDS.clear() };
         for lager_user_choice in lager_user_choices.clone() {
             for lager_user in &lager_users {
@@ -114,6 +135,7 @@ pub fn group2(
                 }
             }
         }
+
 
         wizard.next();
     });

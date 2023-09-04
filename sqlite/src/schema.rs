@@ -19,4 +19,14 @@ diesel::table! {
     }
 }
 
+diesel::table! {
+    einstellungen (id) {
+        id -> Integer,
+        barcode_mindestlaenge -> Integer,
+        leitcodes_aktiv -> Bool,
+        ausnahmen_aktiv -> Bool,
+    }
+}
+
+
 

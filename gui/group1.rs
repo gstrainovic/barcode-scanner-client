@@ -1,9 +1,17 @@
-use fltk::{group, button, input, prelude::{WidgetExt, GroupExt, InputExt, MenuExt, WidgetBase}, frame, enums, dialog, examples::wizard};
+use crate::{logo_and_version::logo_and_version, GJWT, OFFLINE, USER_ID};
+use fltk::menu::Choice;
+use fltk::{
+    button, dialog, enums,
+    examples::wizard,
+    frame, group, input,
+    prelude::{GroupExt, InputExt, MenuExt, WidgetBase, WidgetExt},
+};
 use fun::{looper::looper, username_camelcase::username_camelcase};
 use notify_rust::Notification;
-use req::{loginfn::{JWT, loginfn}, get_lager_users::get_lager_users};
-use crate::{logo_and_version::logo_and_version, GJWT, USER_ID, OFFLINE};
-use fltk::menu::Choice;
+use req::{
+    get_lager_users::get_lager_users,
+    loginfn::{loginfn, JWT},
+};
 
 pub fn group1(
     mut wizard: group::Wizard,
@@ -59,7 +67,12 @@ pub fn group1(
                         let gjwt = unsafe { GJWT.clone() };
                         let username = user.as_ref().unwrap().username.clone();
                         rolle = user.as_ref().unwrap().rolle.clone();
-                        let lager_users = get_lager_users(gjwt).unwrap()
+
+                        let users = get_lager_users(gjwt.clone()).unwrap();
+                        println!("users: {:?}", users);
+
+                        let lager_users = get_lager_users(gjwt)
+                            .unwrap()
                             .into_iter()
                             .filter(|u| u.username != username)
                             .collect::<Vec<_>>();
@@ -135,8 +148,13 @@ pub fn group1(
 
                     // ask is user lager or production
                     // let mut dlg = Choice::new(0, 0, 400, 300, "Server nicht erreichbar");
-                    
-                    let choice = dialog::choice2_default("Server nicht erreichbar, arbeitest du in der Produktion oder im Lager?", "Abbrechen", "Produktion", "Lager");
+
+                    let choice = dialog::choice2_default(
+                        "Server nicht erreichbar, arbeitest du in der Produktion oder im Lager?",
+                        "Abbrechen",
+                        "Produktion",
+                        "Lager",
+                    );
                     println!("{}", choice.unwrap());
 
                     if choice.unwrap() == 1 {
@@ -150,34 +168,36 @@ pub fn group1(
                     println!("Error e: {}", e);
                     dialog::alert_default(&e.to_string());
                 }
-
             }
         }
+
         benutzername_output.set_value(&username);
         rolle_output.set_value(&rolle);
 
-        if rolle == "Lager" {
+        // if GJWT then:
+        if unsafe {GJWT.is_empty() } {
+            if rolle == "Lager" {
+                // ask for mitarbeiter1 name and mitarbeiter2 name
+                let mitarbeiter1 = dialog::input_default("Lager Mitarbeiter 1", "");
+                let mitarbeiter2 = dialog::input_default("Lager Mitarbeiter 2", "");
 
-            // ask for mitarbeiter1 name and mitarbeiter2 name
-            let mitarbeiter1 = dialog::input_default("Lager Mitarbeiter 1", "");
-            let mitarbeiter2 = dialog::input_default("Lager Mitarbeiter 2", "");
-
-            // check the Option<String> mitarbeiter1 and mitarbeiter2
-            if mitarbeiter1.is_none() || mitarbeiter2.is_none() {
-                dialog::alert_default("Mitarbeiter 1 und Mitarbeiter 2 sind Pflichtfelder");
-                return;
+                // check the Option<String> mitarbeiter1 and mitarbeiter2
+                if mitarbeiter1.is_none() || mitarbeiter2.is_none() {
+                    dialog::alert_default("Mitarbeiter 1 und Mitarbeiter 2 sind Pflichtfelder");
+                    return;
+                }
+                mitarbeiter1_output.set_value(&mitarbeiter1.unwrap());
+                mitarbeiter2_output.set_value(&mitarbeiter2.unwrap());
+                wizard.next();
+                wizard.next();
+            } else {
+                mitarbeiter1_output.set_value("");
+                mitarbeiter2_output.set_value("");
+                mitarbeiter1_output.hide();
+                mitarbeiter2_output.hide();
+                wizard.next();
+                wizard.next();
             }
-            mitarbeiter1_output.set_value(&mitarbeiter1.unwrap());
-            mitarbeiter2_output.set_value(&mitarbeiter2.unwrap());
-            wizard.next();
-            wizard.next();
-        } else {
-            mitarbeiter1_output.set_value("");
-            mitarbeiter2_output.set_value("");
-            mitarbeiter1_output.hide();
-            mitarbeiter2_output.hide();
-            wizard.next();
-            wizard.next();
         }
 
         wizard.next();

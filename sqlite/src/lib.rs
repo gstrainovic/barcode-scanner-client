@@ -11,9 +11,7 @@ use schema::users::{self};
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("migrations");
 use req::loginfn::User;
-use req::get_settings::EinstellungenData;
 use req::get_settings::Einstellungen;
-use req::get_settings::IdAtr;
 
 fn run_migrations<DB: diesel::backend::Backend>(connection: &mut impl MigrationHarness<DB>) -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
     // This will run the necessary migrations.
@@ -107,7 +105,7 @@ pub fn get_lager_users(conn: &mut SqliteConnection) -> Vec<sqliteUser> {
     lager_users
 }
 
-pub  fn get_settings(conn: &mut SqliteConnection) -> EinstellungenData {
+pub  fn get_settings(conn: &mut SqliteConnection) -> Einstellungen {
     use schema::einstellungen::dsl::*;
 
     let settings = einstellungen
@@ -119,14 +117,6 @@ pub  fn get_settings(conn: &mut SqliteConnection) -> EinstellungenData {
         Barcode_Mindestlaenge: settings.barcode_mindestlaenge,
         Leitcodes_Aktiv: settings.leitcodes_aktiv,
         Ausnahmen_Aktiv: settings.ausnahmen_aktiv,
-    };
-
-    // transform to EinstellungenData
-    let settings = EinstellungenData {
-        data: IdAtr {
-            id: 1,
-            attributes: settings,
-        },
     };
 
     settings

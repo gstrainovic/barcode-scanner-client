@@ -5,9 +5,10 @@ use fltk::{
 use notify_rust::Notification;
 use req::{
     get_ausnahmen::get_ausnahmen, get_leitcodes::get_leitcodes, get_leitcodes::IdAtr, get_leitcodes::IdAtrBuchstaben,
-    get_leitcodes::Leitcode, get_leitcodes::LeitcodeBuchstabe, get_settings::get_settings,
+    get_leitcodes::Leitcode, get_leitcodes::LeitcodeBuchstabe, get_settings::get_settings, 
 };
-use sqlite::{create_history, establish_connection};
+use sqlite::{create_history, establish_connection, get_settings as get_settings_sqlite};
+use req::get_settings::Einstellungen;
 
 use crate::{errors, send_barcode::send_barcode, ERROR_STATUS};
 
@@ -52,7 +53,21 @@ pub fn process_barcode(
 
     let barcode_lower = barcode.to_lowercase();
 
-    let settings = get_settings(&jwt).unwrap().data.attributes;
+    let mut settings = Einstellungen {
+        Barcode_Mindestlaenge: 0,
+        Leitcodes_Aktiv: false,
+        Ausnahmen_Aktiv: false,
+    };
+
+    if jwt.is_empty() {
+        settings = get_settings_sqlite(&mut establish_connection())
+    } else {
+        settings = get_settings(&jwt).unwrap().data.attributes;
+    }
+
+
+    // printn the settings
+    println!("settings: {:?}", settings);
 
     if settings.Ausnahmen_Aktiv {
         let ausnahmen = get_ausnahmen(&jwt);

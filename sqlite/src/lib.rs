@@ -3,7 +3,7 @@ pub mod schema;
 
 use diesel::prelude::*;
 use std::{fs, error::Error};
-use crate::models::{NewHistory, History, User as sqliteUser};
+use crate::models::{NewHistory, History, User as sqliteUser, Ausnahmen as sqliteAusnahmen};
 
 use std::path::Path;
 use schema::history::{self};
@@ -12,6 +12,8 @@ use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("migrations");
 use req::loginfn::User;
 use req::get_settings::Einstellungen;
+use req::get_ausnahmen::Ausnahmen as reqAusnahmen;
+use schema::ausnahmen::{self};
 
 fn run_migrations<DB: diesel::backend::Backend>(connection: &mut impl MigrationHarness<DB>) -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
     // This will run the necessary migrations.
@@ -114,7 +116,7 @@ pub fn get_lager_users() -> Vec<sqliteUser> {
     lager_users
 }
 
-pub  fn get_settings() -> Einstellungen {
+pub fn get_settings() -> Einstellungen {
     use schema::einstellungen::dsl::*;
 
     let conn = &mut establish_connection();
@@ -152,5 +154,49 @@ pub fn update_settings(settings: Einstellungen) {
         .values(&new_settings)
         .execute(conn)
         .expect("Error saving new settings");
-    
 }
+
+pub fn update_ausnahmen(ausnahmen_rec: Vec<reqAusnahmen>) {
+    use schema::ausnahmen::dsl::*;
+
+    let conn = &mut establish_connection();
+
+    diesel::delete(ausnahmen).execute(conn).unwrap();
+
+    for ausnahme in ausnahmen_rec {
+        let new_ausnahme = models::NewAusnahmen {
+            barcode: &ausnahme.Barcode,
+            bedeutung: &ausnahme.Bedeutung,
+        };
+
+        diesel::insert_into(ausnahmen)
+            .values(&new_ausnahme)
+            .execute(conn)
+            .expect("Error saving new ausnahme");
+    }
+}
+
+pub fn get_ausnahmen() -> Vec<reqAusnahmen> {
+    let conn = &mut establish_connection();
+
+    let ausnahmen_rec = ausnahmen::table
+        .load::<sqliteAusnahmen>(conn)
+        .expect("Error loading ausnahmen");
+
+    let mut ausnahmen: Vec<reqAusnahmen> = Vec::new();
+
+    for ausnahme in ausnahmen_rec {
+        let ausnahme = reqAusnahmen {
+            // id: ausnahme.id,
+            Barcode: ausnahme.barcode,
+            Bedeutung: ausnahme.bedeutung,
+        };
+
+        ausnahmen.push(ausnahme);
+    }
+
+    ausnahmen
+}
+
+
+

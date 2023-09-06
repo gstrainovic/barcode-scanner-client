@@ -2,6 +2,7 @@ use diesel::prelude::*;
 use super::schema::history;
 use super::schema::users;
 use super::schema::einstellungen;
+use super::schema::ausnahmen;
 
 #[derive(Queryable, Selectable)]
 #[diesel(table_name = crate::schema::history)]
@@ -40,4 +41,19 @@ pub struct Einstellungen {
     pub barcode_mindestlaenge: i32,
     pub leitcodes_aktiv: bool,
     pub ausnahmen_aktiv: bool,
+}
+
+#[derive(Queryable)]
+#[diesel(table_name = ausnahmen)]
+pub struct Ausnahmen {
+    pub id: i32,
+    pub barcode: String,
+    pub bedeutung: String,
+}
+
+#[derive(Insertable)]
+#[diesel(table_name = ausnahmen)]
+pub struct NewAusnahmen<'a> {
+    pub barcode: &'a str,
+    pub bedeutung: &'a str,
 }

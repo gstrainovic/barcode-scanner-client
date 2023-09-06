@@ -14,13 +14,14 @@ pub struct IdAtrAusnahmen {
 
 #[derive(Deserialize, Debug)]
 pub struct Ausnahmen {
+    // pub id: i32,
     pub Barcode: String,
     pub Bedeutung: String,
 }
 
 // get all exceptions from the database
 #[tokio::main]
-pub async fn get_ausnahmen(jwt: &str) -> Result<AusnahmenData, reqwest::Error> {
+pub async fn get_ausnahmen(jwt: &str) -> Result<Vec<Ausnahmen>, reqwest::Error> {
     let url = format!("{}/api/ausnahmen", STRAPI_URL);
     let client = reqwest::Client::new();
 
@@ -31,6 +32,12 @@ pub async fn get_ausnahmen(jwt: &str) -> Result<AusnahmenData, reqwest::Error> {
         .await?
         .json::<AusnahmenData>()
         .await?;
-    
-    Ok(res)
+
+    let mut ausnahmen = Vec::new();
+
+    for ausnahme in res.data {
+        ausnahmen.push(ausnahme.attributes);
+    }
+
+    Ok(ausnahmen)
 }

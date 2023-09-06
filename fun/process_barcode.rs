@@ -7,7 +7,7 @@ use req::{
     get_ausnahmen::get_ausnahmen, get_leitcodes::get_leitcodes, get_leitcodes::IdAtr, get_leitcodes::IdAtrBuchstaben,
     get_leitcodes::Leitcode, get_leitcodes::LeitcodeBuchstabe, get_settings::get_settings, 
 };
-use sqlite::{create_history, get_settings as get_settings_sqlite, update_settings};
+use sqlite::{create_history, get_settings as get_settings_sqlite, update_settings, get_ausnahmen as get_ausnahmen_sqlite, update_ausnahmen};
 use req::get_settings::Einstellungen;
 
 use crate::{errors, send_barcode::send_barcode, ERROR_STATUS};
@@ -70,14 +70,22 @@ pub fn process_barcode(
     println!("settings: {:?}", settings);
 
     if settings.Ausnahmen_Aktiv {
-        let ausnahmen = get_ausnahmen(&jwt);
+        let mut ausnahmen = Vec::new();
+
+        if jwt.is_empty() {
+            ausnahmen = get_ausnahmen_sqlite();
+        } else {
+            ausnahmen = get_ausnahmen(&jwt).unwrap();
+            update_ausnahmen(get_ausnahmen(&jwt).unwrap());
+        }
+
         // if barcode ends with a string from barcode_ausnahmen, then send it directly to server
-        for barcode_ausnahme in ausnahmen.unwrap().data {
-            if barcode_lower.ends_with(barcode_ausnahme.attributes.Barcode.to_lowercase().as_str())
+        for barcode_ausnahme in ausnahmen {
+            if barcode_lower.ends_with(barcode_ausnahme.Barcode.to_lowercase().as_str())
             {
                 send_barcode(barcode_c.clone(), user_id, &jwt, lager_user_ids);
                 history_add(
-                    errors::ausnahme(barcode_ausnahme.attributes.Bedeutung),
+                    errors::ausnahme(barcode_ausnahme.Bedeutung),
                     &barcode_c,
                     history,
                     user_id

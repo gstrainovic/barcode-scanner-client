@@ -28,5 +28,13 @@ diesel::table! {
     }
 }
 
+diesel::table! {
+    ausnahmen (id) {
+        id -> Integer,
+        barcode -> Text,
+        bedeutung -> Text,
+    }
+}
+
 
 

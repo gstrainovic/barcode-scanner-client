@@ -3,7 +3,7 @@ pub mod schema;
 
 use diesel::prelude::*;
 use std::{fs, error::Error};
-use crate::models::{NewHistory, History, User as sqliteUser, Ausnahmen as sqliteAusnahmen};
+use crate::models::{NewHistory, History, User as sqliteUser, Ausnahmen as sqliteAusnahmen, Leitcodes as sqliteLeitcodes};
 
 use std::path::Path;
 use schema::history::{self};
@@ -13,7 +13,9 @@ pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("migrations");
 use req::loginfn::User;
 use req::get_settings::Einstellungen;
 use req::get_ausnahmen::Ausnahmen as reqAusnahmen;
+use req::get_leitcodes::Data as reqLeitcodeData;
 use schema::ausnahmen::{self};
+use serde::{Deserialize, Serialize};
 
 fn run_migrations<DB: diesel::backend::Backend>(connection: &mut impl MigrationHarness<DB>) -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
     // This will run the necessary migrations.
@@ -196,6 +198,51 @@ pub fn get_ausnahmen() -> Vec<reqAusnahmen> {
     }
 
     ausnahmen
+}
+
+pub fn update_leitcodes(leitcodes_req_data: reqLeitcodeData) {
+    use schema::leitcodes::dsl::*;
+
+    let conn = &mut establish_connection();
+
+    diesel::delete(leitcodes).execute(conn).unwrap();
+
+    let id_atr_ar = leitcodes_req_data.data;
+
+    for id_atr in id_atr_ar {
+        let attributes = id_atr.attributes;
+
+        let new_leitcode_temp = models::LeitcodesTemp {
+            id: id_atr.id,
+            beschreibung: attributes.Beschreibung,
+            mindeslaenge: attributes.Mindeslaenge,
+            leitcode_buchstabe: attributes.Leitcode_Buchstabe.data.into_iter().map(|buchstabe| {
+                models::LeitcodeBuchstabe {
+                    id: buchstabe.id,
+                    buchstabe: buchstabe.attributes.Buchstabe,
+                    position: buchstabe.attributes.Position_Null_Beginnend,
+                }
+            }).collect(),
+        };
+
+        let mut leitcode_buchstabe_str = String::new();
+
+        for buchstabe in new_leitcode_temp.leitcode_buchstabe {
+            leitcode_buchstabe_str.push_str(&format!("{}:{};", buchstabe.buchstabe, buchstabe.position));
+        }
+
+        let new_leitcode = models::NewLeitcodes {
+            beschreibung: &new_leitcode_temp.beschreibung,
+            mindeslaenge: &new_leitcode_temp.mindeslaenge,
+            leitcode_buchstabe: &leitcode_buchstabe_str,
+        };
+
+        diesel::insert_into(leitcodes)
+            .values(&new_leitcode)
+            .execute(conn)
+            .expect("Error saving new leitcode");
+
+    }
 }
 
 

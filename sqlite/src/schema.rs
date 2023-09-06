@@ -36,5 +36,13 @@ diesel::table! {
     }
 }
 
+diesel::table! {
+    leitcodes (id) {
+        id -> Integer,
+        beschreibung -> Text,
+        mindeslaenge -> Integer,
+        leitcode_buchstabe -> Text,
+    }
+}
 
 

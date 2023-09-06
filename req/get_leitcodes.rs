@@ -15,7 +15,7 @@ pub struct IdAtr {
 #[derive(Deserialize, Debug)]
 pub struct Leitcode {
     pub Beschreibung: String,
-    pub Mindeslaenge: i8,
+    pub Mindeslaenge: i32,
     pub Leitcode_Buchstabe: DataBuchstaben,
 }
 #[derive(Deserialize, Debug)]
@@ -32,7 +32,7 @@ pub struct IdAtrBuchstaben {
 #[derive(Deserialize, Debug)]
 pub struct LeitcodeBuchstabe {
     pub Buchstabe: String,
-    pub Position_Null_Beginnend: i8,
+    pub Position_Null_Beginnend: i32,
 }
 
 // get all exceptions from the database
@@ -40,16 +40,6 @@ pub struct LeitcodeBuchstabe {
 pub async fn get_leitcodes(jwt: &str) -> Result<Data, reqwest::Error> {
     let url = format!("{}/api/leitcodes?populate=*", STRAPI_URL);
     let client = reqwest::Client::new();
-
-    // // print the body for debugging
-    // let res2 = client
-    //     .get(url.clone())
-    //     .header("Authorization", format!("Bearer {}", jwt))
-    //     .send()
-    //     .await?
-    //     .text()
-    //     .await?;
-    // println!("get_leitcodes body: {}", res2);
 
     let res = client
         .get(&url)

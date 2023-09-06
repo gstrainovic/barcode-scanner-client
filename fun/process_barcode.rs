@@ -3,12 +3,16 @@ use fltk::{
     prelude::{BrowserExt, InputExt, WidgetExt},
 };
 use notify_rust::Notification;
-use req::{
-    get_ausnahmen::get_ausnahmen, get_leitcodes::get_leitcodes, get_leitcodes::IdAtr, get_leitcodes::IdAtrBuchstaben,
-    get_leitcodes::Leitcode, get_leitcodes::LeitcodeBuchstabe, get_settings::get_settings, 
-};
-use sqlite::{create_history, get_settings as get_settings_sqlite, update_settings, get_ausnahmen as get_ausnahmen_sqlite, update_ausnahmen};
 use req::get_settings::Einstellungen;
+use req::{
+    get_ausnahmen::get_ausnahmen, get_leitcodes::get_leitcodes, get_leitcodes::IdAtr,
+    get_leitcodes::IdAtrBuchstaben, get_leitcodes::Leitcode, get_leitcodes::LeitcodeBuchstabe,
+    get_settings::get_settings,
+};
+use sqlite::{
+    create_history, get_ausnahmen as get_ausnahmen_sqlite, get_settings as get_settings_sqlite,
+    update_ausnahmen, update_settings, update_leitcodes,
+};
 
 use crate::{errors, send_barcode::send_barcode, ERROR_STATUS};
 
@@ -30,12 +34,7 @@ pub fn history_add(
     unsafe { ERROR_STATUS = status.status };
 
     // save also to sqlite
-    create_history(
-        &status.message,
-        &barcode_c,
-        &utc_time_string,
-        &nuser_id,
-    );
+    create_history(&status.message, &barcode_c, &utc_time_string, &nuser_id);
 }
 
 pub fn process_barcode(
@@ -65,7 +64,6 @@ pub fn process_barcode(
         update_settings(get_settings(&jwt).unwrap().data.attributes);
     }
 
-
     // printn the settings
     println!("settings: {:?}", settings);
 
@@ -81,14 +79,13 @@ pub fn process_barcode(
 
         // if barcode ends with a string from barcode_ausnahmen, then send it directly to server
         for barcode_ausnahme in ausnahmen {
-            if barcode_lower.ends_with(barcode_ausnahme.Barcode.to_lowercase().as_str())
-            {
+            if barcode_lower.ends_with(barcode_ausnahme.Barcode.to_lowercase().as_str()) {
                 send_barcode(barcode_c.clone(), user_id, &jwt, lager_user_ids);
                 history_add(
                     errors::ausnahme(barcode_ausnahme.Bedeutung),
                     &barcode_c,
                     history,
-                    user_id
+                    user_id,
                 );
                 return;
             }
@@ -113,32 +110,41 @@ pub fn process_barcode(
         // ¨C140327628203`99000900033018
         // 0327642113+99..
 
-        let leitcodes: Vec<IdAtr> = get_leitcodes(&jwt).unwrap().data;
+        if jwt.is_empty() {
+        } else {
+            let leitcodes: Vec<IdAtr> = get_leitcodes(&jwt).unwrap().data;
+            update_leitcodes(get_leitcodes(&jwt).unwrap());
 
-        for idatr in leitcodes {
-            let attribute: Leitcode = idatr.attributes;
-            if barcode_lower.len() > attribute.Mindeslaenge as usize {
-                let beschreibung = attribute.Beschreibung;
-                let data_buchstaben: Vec<IdAtrBuchstaben> = attribute.Leitcode_Buchstabe.data;
-                for buchstabe_atr_id in data_buchstaben {
-                    let buchstabe_attr: LeitcodeBuchstabe = buchstabe_atr_id.attributes;
-                    let position: usize = buchstabe_attr.Position_Null_Beginnend as usize;
+            for idatr in leitcodes {
+                let attribute: Leitcode = idatr.attributes;
+                if barcode_lower.len() > attribute.Mindeslaenge as usize {
+                    let beschreibung = attribute.Beschreibung;
+                    let data_buchstaben: Vec<IdAtrBuchstaben> = attribute.Leitcode_Buchstabe.data;
+                    for buchstabe_atr_id in data_buchstaben {
+                        let buchstabe_attr: LeitcodeBuchstabe = buchstabe_atr_id.attributes;
+                        let position: usize = buchstabe_attr.Position_Null_Beginnend as usize;
 
-                    // does the barcode match witch buchstabe at position?
-                    println!("barcode_lower{:?}", barcode_lower);
-                    if barcode_lower.len() > position {
-                        let barcode_buchstabe = barcode_lower.chars().nth(position).unwrap();
-                        println!("barcode_buchstabe{:?}", barcode_buchstabe);
-                        if buchstabe_attr.Buchstabe == barcode_buchstabe.to_string() {
-                            Notification::new()
-                                .summary(&format!(
-                                    "Barcode Scanner: {} als {} erkannt, nicht gesendet",
-                                    barcode_c, beschreibung
-                                ))
-                                .show()
-                                .unwrap();
-                            history_add(errors::leitcode(beschreibung), &barcode_c, history, user_id);
-                            return;
+                        // does the barcode match witch buchstabe at position?
+                        println!("barcode_lower{:?}", barcode_lower);
+                        if barcode_lower.len() > position {
+                            let barcode_buchstabe = barcode_lower.chars().nth(position).unwrap();
+                            println!("barcode_buchstabe{:?}", barcode_buchstabe);
+                            if buchstabe_attr.Buchstabe == barcode_buchstabe.to_string() {
+                                Notification::new()
+                                    .summary(&format!(
+                                        "Barcode Scanner: {} als {} erkannt, nicht gesendet",
+                                        barcode_c, beschreibung
+                                    ))
+                                    .show()
+                                    .unwrap();
+                                history_add(
+                                    errors::leitcode(beschreibung),
+                                    &barcode_c,
+                                    history,
+                                    user_id,
+                                );
+                                return;
+                            }
                         }
                     }
                 }
@@ -177,8 +183,7 @@ pub fn process_barcode(
                 .show()
                 .unwrap();
 
-            history_add(errors::bereits_gesendet(), &barcode_c, history, user_id
-        );
+            history_add(errors::bereits_gesendet(), &barcode_c, history, user_id);
             return;
         }
     }

@@ -107,9 +107,9 @@ pub fn group2(
 
         let mut lager_users: Vec<User> = Vec::new();
 
-        if unsafe {
-            GJWT == ""
-        } {
+        let offline = unsafe { GJWT == "" };
+
+        if offline {
             // load lager users from sqlite
             let sq_lager_users = sq_get_lager_users();
             //transform sqlite users to reqwest users

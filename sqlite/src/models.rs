@@ -15,6 +15,7 @@ pub struct History {
     pub timestamp: String,
     pub synced: bool,
     pub user_id: i32,
+    pub offline: bool,
 }
 
 #[derive(Insertable)]
@@ -25,6 +26,7 @@ pub struct NewHistory<'a> {
     pub timestamp: &'a str,
     pub synced: &'a bool,
     pub user_id: &'a i32,
+    pub offline: bool,
 }
 
 #[derive(Queryable, Insertable)]

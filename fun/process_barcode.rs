@@ -23,6 +23,7 @@ pub fn history_add(
     barcode_c: &str,
     mut history: fltk::browser::HoldBrowser,
     nuser_id: i32,
+    offline: bool,
 ) {
     let utc_time_string = chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
     history.add(&format!(
@@ -33,7 +34,7 @@ pub fn history_add(
     unsafe { ERROR_STATUS = status.status };
 
     // save also to sqlite
-    create_history(&status.message, &barcode_c, &utc_time_string, &nuser_id);
+    create_history(&status.message, &barcode_c, &utc_time_string, &nuser_id, offline);  
 }
 
 pub fn process_barcode(
@@ -56,7 +57,9 @@ pub fn process_barcode(
         Ausnahmen_Aktiv: false,
     };
 
-    if jwt.is_empty() {
+    let offline = jwt.is_empty();
+
+    if offline {
         settings = get_settings_sqlite()
     } else {
         settings = get_settings(&jwt).unwrap().data.attributes;
@@ -69,7 +72,7 @@ pub fn process_barcode(
     if settings.Ausnahmen_Aktiv {
         let mut ausnahmen = Vec::new();
 
-        if jwt.is_empty() {
+        if offline {
             ausnahmen = get_ausnahmen_sqlite();
         } else {
             ausnahmen = get_ausnahmen(&jwt).unwrap();
@@ -85,6 +88,7 @@ pub fn process_barcode(
                     &barcode_c,
                     history,
                     user_id,
+                    offline,
                 );
                 return;
             }
@@ -99,7 +103,7 @@ pub fn process_barcode(
             ))
             .show()
             .unwrap();
-        history_add(errors::zu_kurz(), &barcode_c, history, user_id);
+        history_add(errors::zu_kurz(), &barcode_c, history, user_id, offline);
         return;
     }
 
@@ -147,6 +151,7 @@ pub fn process_barcode(
                                 &barcode_c,
                                 history,
                                 user_id,
+                                offline,
                             );
                             return;
                         }
@@ -177,7 +182,7 @@ pub fn process_barcode(
                 errors::no_numbers()
             };
 
-            history_add(err, &barcode_c, history, user_id);
+            history_add(err, &barcode_c, history, user_id, offline);
         } else {
             Notification::new()
                 .summary(&format!(
@@ -187,7 +192,7 @@ pub fn process_barcode(
                 .show()
                 .unwrap();
 
-            history_add(errors::bereits_gesendet(), &barcode_c, history, user_id);
+            history_add(errors::bereits_gesendet(), &barcode_c, history, user_id, offline);
             return;
         }
     }

@@ -8,6 +8,7 @@ diesel::table! {
         timestamp -> Text,
         synced -> Bool,
         user_id -> Integer,
+        offline -> Bool,
     }
 }
 

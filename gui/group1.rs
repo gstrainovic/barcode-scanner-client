@@ -1,18 +1,17 @@
 use crate::{logo_and_version::logo_and_version, GJWT, USER_ID};
 use fltk::{
-    button, dialog, enums,
-    frame, group, input,
+    button, dialog, enums, frame, group, input,
     prelude::{GroupExt, InputExt, MenuExt, WidgetExt},
 };
 use fun::{looper::looper, username_camelcase::username_camelcase};
 use notify_rust::Notification;
+use req::loginfn::User;
 use req::{
     get_lager_users::get_lager_users,
     get_users::get_users,
     loginfn::{loginfn, JWT},
 };
-use sqlite::{update_users, get_lager_users as sq_get_lager_users};
-use req::loginfn::User;
+use sqlite::{get_lager_users as sq_get_lager_users, update_users};
 
 pub fn group1(
     mut wizard: group::Wizard,
@@ -166,9 +165,9 @@ pub fn group1(
 
         let mut lager_users: Vec<User> = Vec::new();
 
-        if unsafe {
-            GJWT == ""
-        } {
+        let offline = unsafe { GJWT == "" };
+
+        if offline {
             // load lager users from sqlite
             let sq_lager_users = sq_get_lager_users();
             //transform sqlite users to reqwest users
@@ -180,14 +179,9 @@ pub fn group1(
                 };
                 lager_users.push(lager_user);
             }
-
         } else {
             lager_users = get_lager_users(unsafe { GJWT.clone() })
             .unwrap()
-            // .into_iter()
-            // .filter(|u| u.username != username)
-            // .collect::<Vec<_>>();
-
         }
 
         // remove same user from lager_users
@@ -201,21 +195,8 @@ pub fn group1(
             lager_choice2.add_choice(&user.username);
         }
 
-        // if GJWT then:
-        if unsafe {GJWT.is_empty() } {
+        if offline {
             if rolle == "Lager" {
-                // // ask for mitarbeiter1 name and mitarbeiter2 name
-                // let mitarbeiter1 = dialog::input_default("Lager Mitarbeiter 1", "");
-                // let mitarbeiter2 = dialog::input_default("Lager Mitarbeiter 2", "");
-
-                // // check the Option<String> mitarbeiter1 and mitarbeiter2
-                // if mitarbeiter1.is_none() || mitarbeiter2.is_none() {
-                //     dialog::alert_default("Mitarbeiter 1 und Mitarbeiter 2 sind Pflichtfelder");
-                //     return;
-                // }
-                // mitarbeiter1_output.set_value(&mitarbeiter1.unwrap());
-                // mitarbeiter2_output.set_value(&mitarbeiter2.unwrap());
-                // wizard.next();
                 wizard.next();
                 return;
             } else {

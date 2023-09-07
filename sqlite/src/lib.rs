@@ -47,7 +47,7 @@ pub fn establish_connection() -> SqliteConnection {
     conn
 }
 
-pub fn create_history<'a>(status: &'a str, barcode: &'a str, timestamp: &'a str, nuser_id: &'a i32) -> History {
+pub fn create_history<'a>(status: &'a str, barcode: &'a str, timestamp: &'a str, nuser_id: &'a i32, offline: bool) -> History {
     let conn = &mut establish_connection();
     
     let new_history = NewHistory {
@@ -56,6 +56,7 @@ pub fn create_history<'a>(status: &'a str, barcode: &'a str, timestamp: &'a str,
         timestamp,
         synced: &false,
         user_id: nuser_id,
+        offline: offline
     };
 
     diesel::insert_into(history::table)

@@ -13,9 +13,13 @@ pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("migrations");
 use req::loginfn::User;
 use req::get_settings::Einstellungen;
 use req::get_ausnahmen::Ausnahmen as reqAusnahmen;
+use req::get_leitcodes::Leitcode as reqLeitcodes;
 use req::get_leitcodes::Data as reqLeitcodeData;
+use req::get_leitcodes::LeitcodeBuchstabe;
+use req::get_leitcodes::DataBuchstaben;
+use req::get_leitcodes::IdAtrBuchstaben;
 use schema::ausnahmen::{self};
-use serde::{Deserialize, Serialize};
+use schema::leitcodes::{self};
 
 fn run_migrations<DB: diesel::backend::Backend>(connection: &mut impl MigrationHarness<DB>) -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
     // This will run the necessary migrations.
@@ -245,5 +249,55 @@ pub fn update_leitcodes(leitcodes_req_data: reqLeitcodeData) {
     }
 }
 
+pub fn get_leitcodes_sql() -> Vec<reqLeitcodes> {
+    let conn = &mut establish_connection();
+
+    let leitcodes_rec = leitcodes::table
+        .load::<sqliteLeitcodes>(conn)
+        .expect("Error loading leitcodes");
+
+    let mut leitcodes: Vec<reqLeitcodes> = Vec::new();
+
+    for leitcode in leitcodes_rec {
+        let leitcode_buchstabe_ar: Vec<&str> = leitcode.leitcode_buchstabe.split(";").collect();
+
+        let mut leitcode_buchstabe: Vec<LeitcodeBuchstabe> = Vec::new();
+
+        for buchstabe in leitcode_buchstabe_ar {
+            let buchstabe_ar: Vec<&str> = buchstabe.split(":").collect();
+
+            if buchstabe_ar.len() == 2 {
+                let buchstabe = LeitcodeBuchstabe {
+                    Buchstabe: buchstabe_ar[0].to_string(),
+                    Position_Null_Beginnend: buchstabe_ar[1].parse::<i32>().unwrap(),
+                };
+
+                leitcode_buchstabe.push(buchstabe);
+            }
+        }
+
+        let id_atr_buchstaben: Vec<IdAtrBuchstaben> = leitcode_buchstabe.into_iter().enumerate().map(|(i, buchstabe)| {
+            IdAtrBuchstaben {
+                id: i as i16,
+                attributes: LeitcodeBuchstabe {
+                    Buchstabe: buchstabe.Buchstabe,
+                    Position_Null_Beginnend: buchstabe.Position_Null_Beginnend,
+                },
+            }
+        }).collect();
+
+        let leitcode = reqLeitcodes {
+            Beschreibung: leitcode.beschreibung,
+            Mindeslaenge: leitcode.mindeslaenge,
+            Leitcode_Buchstabe: DataBuchstaben {
+                data: id_atr_buchstaben,
+            },
+        };
+
+        leitcodes.push(leitcode);
+    }
+
+    leitcodes
+}  
 
 

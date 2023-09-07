@@ -73,14 +73,12 @@ pub struct LeitcodesTemp {
 }
 
 #[derive(Queryable)]
-#[diesel(table_name = leitcodes)]
 pub struct Leitcodes {
-    pub id: i16,
+    pub id: i32,
     pub beschreibung: String,
     pub mindeslaenge: i32,
     pub leitcode_buchstabe: String,
 }
-
 #[derive(Insertable)]
 #[diesel(table_name = leitcodes)]
 pub struct NewLeitcodes<'a> {

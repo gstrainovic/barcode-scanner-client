@@ -11,7 +11,7 @@ use req::{
 };
 use sqlite::{
     create_history, get_ausnahmen as get_ausnahmen_sqlite, get_settings as get_settings_sqlite,
-    update_ausnahmen, update_settings, update_leitcodes,
+    update_ausnahmen, update_settings, update_leitcodes, get_leitcodes as get_leitcodes_sqlite,
 };
 
 use crate::{errors, send_barcode::send_barcode, ERROR_STATUS};
@@ -110,9 +110,12 @@ pub fn process_barcode(
         // ¨C140327628203`99000900033018
         // 0327642113+99..
 
+        let mut leitcodes = Vec::new();
+
         if jwt.is_empty() {
+            leitcodes = get_leitcodes_sqlite();
         } else {
-            let leitcodes: Vec<IdAtr> = get_leitcodes(&jwt).unwrap().data;
+            leitcodes = get_leitcodes(&jwt).unwrap().data;
             update_leitcodes(get_leitcodes(&jwt).unwrap());
 
             for idatr in leitcodes {

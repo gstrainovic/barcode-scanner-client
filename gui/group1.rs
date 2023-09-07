@@ -65,7 +65,6 @@ pub fn group1(
                     } => {
                         unsafe { GJWT = jwt.unwrap() };
                         let gjwt = unsafe { GJWT.clone() };
-                        let username = user.as_ref().unwrap().username.clone();
                         rolle = user.as_ref().unwrap().rolle.clone();
 
                         let users = get_users(gjwt.clone()).unwrap();
@@ -75,17 +74,6 @@ pub fn group1(
                         // unsafe { USER_ID = user.as_ref().unwrap().id.to_string() };
                         unsafe { USER_ID = user.as_ref().unwrap().id };
 
-                        Notification::new()
-                            .summary(&format!(
-                                "Barcode Scanner: {} hat sich angemeldet",
-                                username
-                            ))
-                            .show()
-                            .unwrap();
-
-                        let inp_c = barcode_input.clone();
-                        let chce_c = device_choice.clone();
-                        std::thread::spawn(|| looper(inp_c, chce_c));
                     }
                     JWT {
                         user: None,
@@ -151,14 +139,23 @@ pub fn group1(
                         dialog::alert_default("Benutzer nicht in der lokalen Datenbank vorhanden");
                         return;
                     }
-
-                    rolle = user.unwrap().rolle;
+                    let user_copy = user.unwrap();
+                    rolle = user_copy.rolle.clone();
+                    unsafe { USER_ID = user_copy.strapi_id };
                 } else {
                     println!("Error e: {}", e);
                     dialog::alert_default(&e.to_string());
                 }
             }
         }
+
+        Notification::new()
+        .summary(&format!(
+            "Barcode Scanner: {} hat sich angemeldet",
+            username
+        ))
+        .show()
+        .unwrap();
 
         benutzername_output.set_value(&username);
         rolle_output.set_value(&rolle);
@@ -194,6 +191,10 @@ pub fn group1(
             lager_choice1.add_choice(&user.username);
             lager_choice2.add_choice(&user.username);
         }
+
+        let inp_c = barcode_input.clone();
+        let chce_c = device_choice.clone();
+        std::thread::spawn(|| looper(inp_c, chce_c));
 
         if offline {
             if rolle == "Lager" {

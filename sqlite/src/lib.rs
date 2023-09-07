@@ -18,6 +18,7 @@ use req::get_leitcodes::Data as reqLeitcodeData;
 use req::get_leitcodes::LeitcodeBuchstabe;
 use req::get_leitcodes::DataBuchstaben;
 use req::get_leitcodes::IdAtrBuchstaben;
+use req::get_leitcodes::IdAtr;
 use schema::ausnahmen::{self};
 use schema::leitcodes::{self};
 
@@ -249,7 +250,7 @@ pub fn update_leitcodes(leitcodes_req_data: reqLeitcodeData) {
     }
 }
 
-pub fn get_leitcodes_sql() -> Vec<reqLeitcodes> {
+pub fn get_leitcodes_sql() -> Vec<IdAtr> {
     let conn = &mut establish_connection();
 
     let leitcodes_rec = leitcodes::table
@@ -297,7 +298,14 @@ pub fn get_leitcodes_sql() -> Vec<reqLeitcodes> {
         leitcodes.push(leitcode);
     }
 
-    leitcodes
+    let id_atr = leitcodes.into_iter().enumerate().map(|(i, leitcode)| {
+        IdAtr {
+            id: i as i16,
+            attributes: leitcode,
+        }
+    }).collect();
+
+    id_atr
 }  
 
 

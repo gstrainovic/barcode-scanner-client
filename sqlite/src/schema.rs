@@ -9,6 +9,7 @@ diesel::table! {
         synced -> Bool,
         user_id -> Integer,
         offline -> Bool,
+        lager_user_ids -> Text,
     }
 }
 
@@ -45,5 +46,4 @@ diesel::table! {
         leitcode_buchstabe -> Text,
     }
 }
-
 

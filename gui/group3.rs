@@ -66,7 +66,7 @@ pub fn group3(
 
     senden_button.set_callback(move |_| {
         unsafe {
-            process_barcode(&mut barcode_input, USER_ID.clone(), GJWT.clone(), LAGER_USER_IDS.clone(), history_browser.clone());
+            process_barcode(&mut barcode_input, USER_ID.clone(), GJWT.clone(), &LAGER_USER_IDS, history_browser.clone());
         }
 
     });

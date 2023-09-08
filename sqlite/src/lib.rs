@@ -47,8 +47,10 @@ pub fn establish_connection() -> SqliteConnection {
     conn
 }
 
-pub fn create_history<'a>(status: &'a str, barcode: &'a str, timestamp: &'a str, nuser_id: &'a i32, offline: bool) -> History {
+pub fn create_history<'a>(status: &'a str, barcode: &'a str, timestamp: &'a str, nuser_id: &'a i32, offline: bool, lager_user_ids: &Vec<i32>)  {
     let conn = &mut establish_connection();
+
+    let lager_user_ids_string = lager_user_ids.into_iter().map(|id| id.to_string()).collect::<Vec<String>>().join(",");
     
     let new_history = NewHistory {
         status,
@@ -56,7 +58,8 @@ pub fn create_history<'a>(status: &'a str, barcode: &'a str, timestamp: &'a str,
         timestamp,
         synced: &false,
         user_id: nuser_id,
-        offline: offline
+        offline: offline,
+        lager_user_ids: &lager_user_ids_string,
     };
 
     diesel::insert_into(history::table)
@@ -64,14 +67,14 @@ pub fn create_history<'a>(status: &'a str, barcode: &'a str, timestamp: &'a str,
         .execute(conn)
         .expect("Error saving new history");
 
-    history::table.order(history::id.desc()).first(conn).unwrap()
+    // history::table.order(history::id.asc()).first(conn).unwrap()
 }
 
 pub fn load_history() -> Vec<History> {
     let conn = &mut establish_connection();
 
     history::table
-        .order(history::id.desc())
+        .order(history::id.asc())
         .limit(1000)
         .load::<History>(conn)
         .expect("Error loading history")

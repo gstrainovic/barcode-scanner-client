@@ -2,7 +2,7 @@ use fltk::dialog;
 use notify_rust::Notification;
 use req::write_barcode::write_barcode;
 
-pub fn send_barcode(barcode: String, user: i32, jwt: &str, lager_user_ids: Vec<i32>) {
+pub fn send_barcode(barcode: String, user: i32, jwt: &str, lager_user_ids: &Vec<i32>) {
     let barcode_c = barcode.clone();
 
     if jwt.is_empty() {
@@ -13,7 +13,7 @@ pub fn send_barcode(barcode: String, user: i32, jwt: &str, lager_user_ids: Vec<i
         return;
     }
 
-    match write_barcode(barcode, user, jwt, lager_user_ids) {
+    match write_barcode(barcode, user, jwt, &lager_user_ids) {
         Ok(_) => {
             Notification::new()
                 .summary(&format!("Barcode Scanner: {} gesendet", barcode_c))

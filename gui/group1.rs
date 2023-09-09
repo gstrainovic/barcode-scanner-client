@@ -55,6 +55,7 @@ pub fn group1(
         let username = username_camelcase(user_input.value());
         let res = loginfn(username.clone(), password.value());
         let mut rolle = String::new();
+        let mut continue_bool = false;
         match res {
             Ok(j) => {
                 match j {
@@ -78,80 +79,42 @@ pub fn group1(
                             update_users(users);
                         }
                         unsafe { USER_ID = user.as_ref().unwrap().id };
-
-                    }
-                    JWT {
-                        user: None,
-                        jwt: None,
-                        error: Some(err),
-                    } => {
-                        println!("Error err: {:?}", err);
-                        match err.get_key_value("message") {
-                            Some((k, v)) => {
-                                let value_s = v.as_str().unwrap();
-                                match value_s {
-                                    "Invalid identifier or password" => {
-                                        println!("{}", value_s);
-                                        dialog::alert_default("Benutzername oder Passwort falsch");
-                                    }
-                                    "password is a required field" => {
-                                        println!("{}", value_s);
-                                        dialog::alert_default("Passwort ist ein Pflichtfeld");
-                                    }
-                                    "username is a required field" => {
-                                        println!("{}", value_s);
-                                        dialog::alert_default("Benutzer ist ein Pflichtfeld");
-                                    }
-                                    "2 errors occurred" => {
-                                        println!("{}", value_s);
-                                        dialog::alert_default(
-                                            "Benutzername und Passwort sind Pflichtfelder",
-                                        );
-                                    }
-                                    _ => {
-                                        println!("Error2: {:?}", value_s);
-                                        dialog::alert_default(value_s);
-                                    }
-                                }
-                                println!("Error: {} {}", k, v);
-                            }
-                            None => {
-                                println!("Error: {:?}", err);
-                            }
-                        }
+                        continue_bool = true;
                     }
                     _ => {
                         println!("Error j : {:?}", j);
+                        dialog::alert_default("Benutzername oder Passwort falsch");
+                        continue_bool = false;
                     }
                 }
             }
             Err(e) => {
                 if e.to_string().contains("os error 10061") {
-                    // dialog::alert_default("Server nicht erreichbar");
                     println!("Error e: {}", e);
-
-                    // inform the user that the server is not reachable
                     dialog::message_default(
                         "Server nicht erreichbar, speichere die Daten lokal, wird beim nächsten Start synchronisiert",
                     );
-                    //   ::Message::new(0, 0, 400, 300, "Server nicht erreichbar, speichere die Daten lokal, wird beim nächsten Start synchronisiert");
-
-                    //load the user from the sqlite db
                     let user = sqlite::get_user(username.clone());
-
-                    // check if the user exists in the sqlite db, abbort if not
                     if user.is_none() {
                         dialog::alert_default("Benutzer nicht in der lokalen Datenbank vorhanden");
+                        continue_bool = false;
                         return;
                     }
                     let user_copy = user.unwrap();
                     rolle = user_copy.rolle.clone();
                     unsafe { USER_ID = user_copy.strapi_id };
+                    continue_bool = true;
                 } else {
                     println!("Error e: {}", e);
                     dialog::alert_default(&e.to_string());
+                    continue_bool = false;
+                    return;
                 }
             }
+        }
+
+        if !continue_bool {
+            return;
         }
 
         Notification::new()

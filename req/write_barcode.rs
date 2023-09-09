@@ -19,6 +19,7 @@ pub async fn write_barcode(
     user: i32,
     jwt: &str,
     lager_user_ids: &Vec<i32>,
+    sync: bool,
 ) -> Result<BarcodeData, reqwest::Error> {
 
     let url = format!("{}/api/barcodes", STRAPI_URL);
@@ -32,7 +33,8 @@ pub async fn write_barcode(
           "data": {
             "barcode": barcode,
             "users_permissions_user": user,
-            "lager_mitarbeiter": lager_user_ids
+            "lager_mitarbeiter": lager_user_ids,
+            "synched": sync
           }
         }))
         .send()

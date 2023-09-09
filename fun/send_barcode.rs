@@ -13,7 +13,7 @@ pub fn send_barcode(barcode: String, user: i32, jwt: &str, lager_user_ids: &Vec<
         return;
     }
 
-    match write_barcode(barcode, user, jwt, &lager_user_ids) {
+    match write_barcode(barcode, user, jwt, &lager_user_ids, false) {
         Ok(_) => {
             Notification::new()
                 .summary(&format!("Barcode Scanner: {} gesendet", barcode_c))

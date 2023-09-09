@@ -42,12 +42,6 @@ fn main() {
     hide_console_window();
     update().unwrap();
 
-    // test the sync function
-    let result = fun::sync::sync();
-
-    // print the result
-    println!("sync result: {}", result);
-
     // globals
     let mitarbeiter1_output = output::Output::default().with_label("Mitarbeiter 1");
     let mitarbeiter2_output = output::Output::default().with_label("Mitarbeiter 2");

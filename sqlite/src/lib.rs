@@ -80,6 +80,30 @@ pub fn load_history() -> Vec<History> {
         .expect("Error loading history")
 }
 
+pub fn update_history(id: i32) {
+    use schema::history::dsl::*;
+
+    let conn = &mut establish_connection();
+
+    diesel::update(history.find(id))
+        .set(synced.eq(true))
+        .execute(conn)
+        .unwrap();
+}
+
+pub fn get_sync_history() -> Vec<History> {
+    let conn = &mut establish_connection();
+
+    let history_rec = history::table
+        .filter(history::synced.eq(false))
+        .filter(history::offline.eq(true))
+        .filter(history::status.eq("OK"))
+        .load::<History>(conn)
+        .expect("Error loading history");
+
+    history_rec
+}
+
 pub fn update_users(users_ar: Vec<User>) {
     use schema::users::dsl::*;
 

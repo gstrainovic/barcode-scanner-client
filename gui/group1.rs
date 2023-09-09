@@ -63,15 +63,20 @@ pub fn group1(
                         jwt,
                         error: None,
                     } => {
+                        
                         unsafe { GJWT = jwt.unwrap() };
                         let gjwt = unsafe { GJWT.clone() };
+                        // std::thread::spawn(|| {
+                            let jwt = unsafe { GJWT.clone() };
+                            fun::sync::sync(jwt);
+                        // });
+
                         rolle = user.as_ref().unwrap().rolle.clone();
 
                         let users = get_users(gjwt.clone()).unwrap();
                         if users.len() > 0 {
                             update_users(users);
                         }
-                        // unsafe { USER_ID = user.as_ref().unwrap().id.to_string() };
                         unsafe { USER_ID = user.as_ref().unwrap().id };
 
                     }

@@ -77,7 +77,10 @@ pub fn load_history() -> Vec<History> {
         .order(history::id.asc())
         .limit(1000)
         .load::<History>(conn)
-        .expect("Error loading history")
+        .unwrap_or_else(|error| {
+            eprintln!("Error loading history: {}", error);
+            panic!("Failed to load history");
+        })
 }
 
 pub fn update_history(id: i32) {

@@ -179,6 +179,13 @@ pub fn group1(
             }
         }
 
-        wizard.next();
+        if rolle == "Lager" {
+            wizard.next();
+            return;
+        } else {
+            wizard.next();
+            wizard.next();
+            return;
+        }
     });
 }

@@ -1,17 +1,24 @@
 use req::write_barcode::write_barcode;
+use req::check_duplicate_barcode::is_barcode_duplicate;
 
 pub fn sync(jwt : String) {
     let history_to_sync = sqlite::get_sync_history();
     for history in history_to_sync {
         // print the history fields
         println!(
-            "id: {}, barcode: {}, timestamp: {}, synced: {}, user_id: {}, offline: {}, lager_user_ids: {}",
+            "sync: id: {}, barcode: {}, timestamp: {}, synced: {}, user_id: {}, offline: {}, lager_user_ids: {}",
             history.id, history.barcode, history.timestamp, history.synced, history.user_id, history.offline, history.lager_user_ids
         );
 
         let lager_user_ids: Vec<i32> = history.lager_user_ids.split(",").map(|s| s.parse().unwrap()).collect();
 
-        println!("lager_user_ids: {:?}", lager_user_ids);
+        println!("sync: lager_user_ids: {:?}", lager_user_ids);
+
+        if is_barcode_duplicate(&jwt, &history.barcode).unwrap() {
+            println!("sync: barcode {} is duplicate, not sendet", history.barcode);
+            sqlite::update_history(history.id);
+            continue;
+        }
 
         let res = write_barcode(
             history.barcode,

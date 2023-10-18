@@ -69,7 +69,9 @@ pub fn group1(
                         let gjwt = unsafe { GJWT.clone() };
                         // std::thread::spawn(|| {
                             let jwt = unsafe { GJWT.clone() };
+                            println!("start sync");
                             fun::sync::sync(jwt);
+                            println!("end sync");
                         // });
 
                         rolle = user.as_ref().unwrap().rolle.clone();

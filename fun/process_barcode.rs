@@ -11,7 +11,7 @@ use req::{
 };
 use sqlite::{
     create_history, get_ausnahmen as get_ausnahmen_sqlite, get_leitcodes_sql,
-    get_settings as get_settings_sqlite, update_ausnahmen, update_leitcodes, update_settings,
+    get_settings as get_settings_sqlite, update_ausnahmen, update_leitcodes, update_settings, is_barcode_duplicate_sqlite
 };
 
 use crate::{errors, send_barcode::send_barcode, ERROR_STATUS};
@@ -176,8 +176,15 @@ pub fn process_barcode(
         }
     }
 
-    // duplicate check
-    if !is_barcode_duplicate(&jwt, &barcode_c).unwrap() {
+    let mut is_barcode_duplicate_bool = false;
+
+    if offline {
+        is_barcode_duplicate_bool = is_barcode_duplicate_sqlite(&barcode_c);
+    } else {
+        is_barcode_duplicate_bool = is_barcode_duplicate(&jwt, &barcode_c).unwrap();
+    }
+
+    if !is_barcode_duplicate_bool {
         send_barcode(barcode_lower.clone(), user_id, &jwt, lager_user_ids);
 
         // does the barcode contain a number?

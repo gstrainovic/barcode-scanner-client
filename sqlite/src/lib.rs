@@ -70,6 +70,24 @@ pub fn create_history<'a>(status: &'a str, barcode: &'a str, timestamp: &'a str,
     // history::table.order(history::id.asc()).first(conn).unwrap()
 }
 
+pub fn is_barcode_duplicate_sqlite(barcode: &str) -> bool {
+    use schema::history::dsl::*;
+
+    let conn = &mut establish_connection();
+
+    let history_rec = history
+        .filter(barcode.eq(barcode))
+        .first::<History>(conn)
+        .optional()
+        .expect("Error loading history");
+
+    if history_rec.is_some() {
+        true
+    } else {
+        false
+    }
+}
+
 pub fn load_history() -> Vec<History> {
     let conn = &mut establish_connection();
 

@@ -5,8 +5,9 @@ use fltk::{
 use notify_rust::Notification;
 use req::get_settings::Einstellungen;
 use req::{
-    get_ausnahmen::get_ausnahmen, get_leitcodes::get_leitcodes, get_leitcodes::IdAtrBuchstaben,
-    get_leitcodes::Leitcode, get_leitcodes::LeitcodeBuchstabe, get_settings::get_settings,
+    check_duplicate_barcode::is_barcode_duplicate, get_ausnahmen::get_ausnahmen,
+    get_leitcodes::get_leitcodes, get_leitcodes::IdAtrBuchstaben, get_leitcodes::Leitcode,
+    get_leitcodes::LeitcodeBuchstabe, get_settings::get_settings,
 };
 use sqlite::{
     create_history, get_ausnahmen as get_ausnahmen_sqlite, get_leitcodes_sql,
@@ -14,9 +15,6 @@ use sqlite::{
 };
 
 use crate::{errors, send_barcode::send_barcode, ERROR_STATUS};
-
-// global array for barcode history
-static mut BARCODES: Vec<String> = Vec::new();
 
 pub fn history_add(
     status: errors::Error,
@@ -35,7 +33,14 @@ pub fn history_add(
     unsafe { ERROR_STATUS = status.status };
 
     // save also to sqlite
-    create_history(&status.message, &barcode_c, &utc_time_string, &nuser_id, offline, lager_user_ids);
+    create_history(
+        &status.message,
+        &barcode_c,
+        &utc_time_string,
+        &nuser_id,
+        offline,
+        lager_user_ids,
+    );
 }
 
 pub fn process_barcode(
@@ -105,7 +110,14 @@ pub fn process_barcode(
             ))
             .show()
             .unwrap();
-        history_add(errors::zu_kurz(), &barcode_c, history, user_id, offline, lager_user_ids);
+        history_add(
+            errors::zu_kurz(),
+            &barcode_c,
+            history,
+            user_id,
+            offline,
+            lager_user_ids,
+        );
         return;
     }
 
@@ -165,38 +177,42 @@ pub fn process_barcode(
     }
 
     // duplicate check
-    unsafe {
-        if !BARCODES.contains(&barcode_lower) {
-            BARCODES.push(barcode_lower.clone());
-            send_barcode(barcode_lower.clone(), user_id, &jwt, lager_user_ids);
+    if !is_barcode_duplicate(&jwt, &barcode_c).unwrap() {
+        send_barcode(barcode_lower.clone(), user_id, &jwt, lager_user_ids);
 
-            // does the barcode contain a number?
-            let mut contains_number = false;
-            for c in barcode_lower.chars() {
-                if c.is_numeric() {
-                    contains_number = true;
-                    break;
-                }
+        // does the barcode contain a number?
+        let mut contains_number = false;
+        for c in barcode_lower.chars() {
+            if c.is_numeric() {
+                contains_number = true;
+                break;
             }
-
-            let err = if contains_number {
-                errors::ok()
-            } else {
-                errors::no_numbers()
-            };
-
-            history_add(err, &barcode_c, history, user_id, offline, lager_user_ids);
-        } else {
-            Notification::new()
-                .summary(&format!(
-                    "Barcode Scanner: {} wurde bereits gesendet",
-                    barcode_c
-                ))
-                .show()
-                .unwrap();
-
-            history_add(errors::bereits_gesendet(), &barcode_c, history, user_id, offline, lager_user_ids);
-            return;
         }
+
+        let err = if contains_number {
+            errors::ok()
+        } else {
+            errors::no_numbers()
+        };
+
+        history_add(err, &barcode_c, history, user_id, offline, lager_user_ids);
+    } else {
+        Notification::new()
+            .summary(&format!(
+                "Barcode Scanner: {} wurde bereits gesendet",
+                barcode_c
+            ))
+            .show()
+            .unwrap();
+
+        history_add(
+            errors::bereits_gesendet(),
+            &barcode_c,
+            history,
+            user_id,
+            offline,
+            lager_user_ids,
+        );
+        return;
     }
 }

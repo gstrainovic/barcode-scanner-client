@@ -181,7 +181,7 @@ pub fn process_barcode(
     if offline {
         is_barcode_duplicate_bool = is_barcode_duplicate_sqlite(&barcode_c);
     } else {
-        is_barcode_duplicate_bool = is_barcode_duplicate(&jwt, &barcode_c).unwrap();
+        is_barcode_duplicate_bool = is_barcode_duplicate(&jwt, &barcode_c, &user_id).unwrap();
     }
 
     if !is_barcode_duplicate_bool {

@@ -14,7 +14,7 @@ pub fn sync(jwt : String) {
 
         println!("sync: lager_user_ids: {:?}", lager_user_ids);
 
-        if is_barcode_duplicate(&jwt, &history.barcode).unwrap() {
+        if is_barcode_duplicate(&jwt, &history.barcode, &history.user_id).unwrap() {
             println!("sync: barcode {} is duplicate, not sendet", history.barcode);
             sqlite::update_history(history.id);
             continue;

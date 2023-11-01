@@ -55,7 +55,13 @@ pub fn process_barcode(
     let barcode_c = barcode.clone();
     i.set_value("");
 
-    let barcode_lower = barcode.to_lowercase();
+    
+    // remove barcode all non-ascii, whitespace characters and make it lowercase
+    let barcode_lower = barcode_c
+        .chars()
+        .filter(|c| c.is_ascii() && !c.is_whitespace())
+        .collect::<String>()
+        .to_lowercase();
 
     let mut settings = Einstellungen {
         Barcode_Mindestlaenge: 0,

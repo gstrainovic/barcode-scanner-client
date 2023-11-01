@@ -35,15 +35,15 @@ pub fn group3(
     grid.insert_ext(&mut senden_button, 17, left_offset, left_widtd_columns, 1);
 
     let mut header = Browser::default();
-    header.add("Status\tBarcode\tZeitstempel");
-    header.set_column_widths([120, 380, 100].as_ref());
+    header.add("Status\tBarcode\tZeitstempel\tO\tS");
+    header.set_column_widths([120, 240, 150,50,50].as_ref());
     header.set_column_char('\t');
 
     let right_side_columns = 12;
     let right_offset = left_offset + left_widtd_columns + 1;
     grid.insert_ext(&mut header, 7, right_offset, right_side_columns, 1);
 
-    history_browser.set_column_widths([120, 380, 100].as_ref());
+    history_browser.set_column_widths([120, 240, 150, 50, 50].as_ref());
     history_browser.set_column_char('\t');
     grid.insert_ext(&mut history_browser, 8, right_offset, right_side_columns, 10);
 
@@ -60,7 +60,7 @@ pub fn group3(
     // load the first 1000 entries from the history table into the history browser
     let history = load_history();
     for h in history {
-        history_browser.add(&format!("{}\t{}\t{}", h.status, h.barcode, h.timestamp));
+        history_browser.add(&format!("{}\t{}\t{}\t{}\t{}", h.status, h.barcode, h.timestamp, h.offline, h.synced));
         history_browser.top_line(history_browser.size());
     }
 

@@ -10,7 +10,10 @@ pub fn sync(jwt : String) {
             history.id, history.barcode, history.timestamp, history.synced, history.user_id, history.offline, history.lager_user_ids
         );
 
-        let lager_user_ids: Vec<i32> = history.lager_user_ids.split(",").map(|s| s.parse().unwrap()).collect();
+        // let lager_user_ids: Vec<i32> = history.lager_user_ids.split(",").map(|s| s.parse().unwrap()).collect();
+        let lager_user_ids: Vec<i32> = history.lager_user_ids.split(",")
+        .filter_map(|s| s.parse().ok())
+        .collect();
 
         println!("sync: lager_user_ids: {:?}", lager_user_ids);
 

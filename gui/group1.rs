@@ -91,7 +91,7 @@ pub fn group1(
                 }
             }
             Err(e) => {
-                if e.to_string().contains("os error 10061") {
+                // if e.to_string().contains("os error 10061") {
                     println!("Error e: {}", e);
                     dialog::message_default(
                         "Server nicht erreichbar, speichere die Daten lokal, wird beim nächsten Start synchronisiert",
@@ -106,12 +106,12 @@ pub fn group1(
                     rolle = user_copy.rolle.clone();
                     unsafe { USER_ID = user_copy.strapi_id };
                     continue_bool = true;
-                } else {
-                    println!("Error e: {}", e);
-                    dialog::alert_default(&e.to_string());
-                    continue_bool = false;
-                    return;
-                }
+                // } else {
+                    // println!("Error e: {}", e);
+                    // dialog::alert_default(&e.to_string());
+                    // continue_bool = false;
+                    // return;
+                // }
             }
         }
 

@@ -20,7 +20,7 @@ fn print_message(msg: &str) -> Result<i32, Error> {
 
 #[cfg(not(windows))]
 fn print_message(msg: &str) -> Result<(), Error> {
-    println!("{}", msg);
+    // println!("{}", msg);
     Ok(())
 }
 

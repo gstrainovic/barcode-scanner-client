@@ -78,7 +78,7 @@ pub fn process_barcode(
     }
 
     // printn the settings
-    println!("settings: {:?}", settings);
+    // println!("settings: {:?}", settings);
 
     if settings.Ausnahmen_Aktiv {
         let mut ausnahmen = Vec::new();
@@ -141,7 +141,7 @@ pub fn process_barcode(
             update_leitcodes(get_leitcodes(&jwt).unwrap());
         }
 
-        println!("leitcodes: {:?}", leitcodes);
+        // println!("leitcodes: {:?}", leitcodes);
 
         for idatr in leitcodes {
             let attribute: Leitcode = idatr.attributes;
@@ -153,10 +153,10 @@ pub fn process_barcode(
                     let position: usize = buchstabe_attr.Position_Null_Beginnend as usize;
 
                     // does the barcode match witch buchstabe at position?
-                    println!("barcode_lower{:?}", barcode_new);
+                    // println!("barcode_lower{:?}", barcode_new);
                     if barcode_new.len() > position {
                         let barcode_buchstabe = barcode_new.chars().nth(position).unwrap();
-                        println!("barcode_buchstabe{:?}", barcode_buchstabe);
+                        // println!("barcode_buchstabe{:?}", barcode_buchstabe);
                         if buchstabe_attr.Buchstabe == barcode_buchstabe.to_string() {
                             Notification::new()
                                 .summary(&format!(

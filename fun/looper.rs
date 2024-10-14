@@ -30,7 +30,7 @@ pub fn looper(mut inp: input::Input, chce: Choice, rolle: String) {
     loop {
         // handle events
         if let Some(event) = manager.get_event() {
-            println!("Event: {:?}", event);
+            // println!("Event: {:?}", event);
             // add charachter from event to barcode_string
 
             let current_active_window_hwnd = unsafe { winapi::um::winuser::GetForegroundWindow() };

@@ -100,7 +100,7 @@ pub fn group2(
 
         if mitarbeiter1_output.value() == mitarbeiter2_output.value() && mitarbeiter1_output.value() != "" && mitarbeiter2_output.value() != "" {
             let message = "Mitarbeiter 1 und Mitarbeiter 2 dürfen nicht gleich sein!";
-            println!("{}", message);
+            // println!("{}", message);
             fltk::dialog::alert_default(message);
             return;
         }

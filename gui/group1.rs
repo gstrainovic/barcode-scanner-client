@@ -93,9 +93,9 @@ pub fn group1(
                         let gjwt = unsafe { GJWT.clone() };
                         // std::thread::spawn(|| {
                             let jwt = unsafe { GJWT.clone() };
-                            println!("start sync");
+                            // println!("start sync");
                             fun::sync::sync(jwt);
-                            println!("end sync");
+                            // println!("end sync");
                         // });
 
                         rolle = user.as_ref().unwrap().rolle.clone();
@@ -108,7 +108,7 @@ pub fn group1(
                         continue_bool = true;
                     }
                     _ => {
-                        println!("Error j : {:?}", j);
+                        // println!("Error j : {:?}", j);
                         dialog::alert_default("Benutzername oder Passwort falsch");
                         continue_bool = false;
                     }
@@ -116,7 +116,7 @@ pub fn group1(
             }
             Err(e) => {
                 // if e.to_string().contains("os error 10061") {
-                    println!("Error e: {}", e);
+                    // println!("Error e: {}", e);
                     dialog::message_default(
                         "Server nicht erreichbar, speichere die Daten lokal, wird beim nächsten Start synchronisiert",
                     );
@@ -190,7 +190,7 @@ pub fn group1(
 
         if offline {
             if rolle == "Lager" {
-                println!("Lager mit offline");
+                // println!("Lager mit offline");
                 win.fullscreen(true);
                 wizard.next();
                 return;
@@ -208,7 +208,7 @@ pub fn group1(
         }
 
         if rolle == "Lager" {
-            println!("Lager ohne offline");
+            // println!("Lager ohne offline");
             win.fullscreen(true);
             wizard.next();
             return;

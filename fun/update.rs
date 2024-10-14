@@ -17,11 +17,11 @@ pub fn update() -> Result<(), Box<dyn (::std::error::Error)>> {
             "Aktualisiert zu {}. Bitte barcode_scanner.exe nochmals starten",
             status.version()
         );
-        println!("{}", message);
+        // println!("{}", message);
         dialog::alert_default(&message);
         return Err(Box::new(self_update::errors::Error::Update(message)));
     } else {
-        println!("Already up to date");
+        // println!("Already up to date");
         return Ok(());
     }
 }

@@ -13,6 +13,29 @@ use req::{
 };
 use sqlite::{get_lager_users as sq_get_lager_users, update_users};
 
+use std::sync::atomic::{AtomicBool, Ordering};
+
+// Statische Variable zur Verfolgung des `looper`-Threads
+static LOOPER_RUNNING: AtomicBool = AtomicBool::new(false);
+
+fn start_looper(barcode_input: fltk::input::Input, device_choice: fltk::menu::Choice, rolle: String) {
+    // Überprüfen, ob der `looper`-Thread bereits läuft
+    if !LOOPER_RUNNING.load(Ordering::SeqCst) {
+        println!("Starte Looper");
+        LOOPER_RUNNING.store(true, Ordering::SeqCst);
+        let inp_c = barcode_input.clone();
+        let chce_c = device_choice.clone();
+        let rol_c = rolle.clone();
+        std::thread::spawn(move || {
+            looper(inp_c, chce_c, rol_c);
+            LOOPER_RUNNING.store(false, Ordering::SeqCst); // Setzen Sie den Status zurück, wenn der Thread beendet ist
+        });
+    } else {
+        println!("Looper läuft bereits");
+    }
+}
+
+
 pub fn group1(
     mut wizard: group::Wizard,
     mut lager_choice1: fltk::menu::Choice,
@@ -163,10 +186,7 @@ pub fn group1(
             lager_choice2.add_choice(&user.username);
         }
 
-        let inp_c = barcode_input.clone();
-        let chce_c = device_choice.clone();
-        let rol_c = rolle.clone();
-        std::thread::spawn(|| looper(inp_c, chce_c, rol_c));
+
 
         if offline {
             if rolle == "Lager" {
@@ -175,6 +195,7 @@ pub fn group1(
                 wizard.next();
                 return;
             } else {
+                start_looper(barcode_input.clone(), device_choice.clone(), rolle.clone());
                 win.fullscreen(false);
                 mitarbeiter1_output.set_value("");
                 mitarbeiter2_output.set_value("");
@@ -192,6 +213,7 @@ pub fn group1(
             wizard.next();
             return;
         } else {
+            start_looper(barcode_input.clone(), device_choice.clone(), rolle);
             win.fullscreen(false);
             wizard.next();
             wizard.next();

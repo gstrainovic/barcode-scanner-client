@@ -254,6 +254,7 @@ fn setup_message_window() -> HWND {
 }
 
 /// Prints a list of all available raw input devices
+#[allow(unused_variables)]
 fn print_raw_device_list(devices: &Devices) {
     for mouse in &devices.mice {
     }

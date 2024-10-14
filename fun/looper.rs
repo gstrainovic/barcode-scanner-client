@@ -1,7 +1,7 @@
 use fltk::{
     input,
     menu::Choice,
-    prelude::{InputExt, MenuExt, WidgetExt},
+    prelude::{MenuExt, WidgetExt},
 };
 use scanner::{DeviceType, KeyId, RawEvent, RawInputManager, State};
 use std::sync::Arc;

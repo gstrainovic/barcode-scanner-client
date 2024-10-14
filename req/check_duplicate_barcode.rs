@@ -13,6 +13,7 @@ pub struct Data {
 }
 
 #[derive(Deserialize, Debug)]
+#[allow(non_snake_case)]
 pub struct Attributes {
     pub createdAt: String,
 }

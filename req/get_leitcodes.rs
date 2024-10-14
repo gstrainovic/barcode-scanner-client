@@ -13,6 +13,7 @@ pub struct IdAtr {
 }
 
 #[derive(Deserialize, Debug)]
+#[allow(non_snake_case)]
 pub struct Leitcode {
     pub Beschreibung: String,
     pub Mindeslaenge: i32,
@@ -30,6 +31,7 @@ pub struct IdAtrBuchstaben {
 }
 
 #[derive(Deserialize, Debug)]
+#[allow(non_snake_case)]
 pub struct LeitcodeBuchstabe {
     pub Buchstabe: String,
     pub Position_Null_Beginnend: i32,

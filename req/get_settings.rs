@@ -13,6 +13,7 @@ pub struct IdAtr {
 }
 
 #[derive(Deserialize, Debug)]
+#[allow(non_snake_case)]
 pub struct Einstellungen {
     pub Barcode_Mindestlaenge: i32,
     pub Leitcodes_Aktiv: bool,

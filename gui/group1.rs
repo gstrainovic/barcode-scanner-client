@@ -1,4 +1,6 @@
-use crate::{logo_and_version::logo_and_version, win, GJWT, USER_ID};
+#![allow(unused_assignments)]
+
+use crate::{logo_and_version::logo_and_version, GJWT, USER_ID};
 use fltk::{
     button, dialog, enums, frame, group, input,
     prelude::{GroupExt, InputExt, MenuExt, WidgetExt, WindowExt},
@@ -114,7 +116,7 @@ pub fn group1(
                     }
                 }
             }
-            Err(e) => {
+            Err(_) => {
                 // if e.to_string().contains("os error 10061") {
                     // println!("Error e: {}", e);
                     dialog::message_default(

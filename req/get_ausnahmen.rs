@@ -13,8 +13,8 @@ pub struct IdAtrAusnahmen {
 }
 
 #[derive(Deserialize, Debug)]
+#[allow(non_snake_case)]
 pub struct Ausnahmen {
-    // pub id: i32,
     pub Barcode: String,
     pub Bedeutung: String,
 }

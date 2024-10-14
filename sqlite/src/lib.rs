@@ -101,12 +101,12 @@ pub fn load_history() -> Vec<History> {
         })
 }
 
-pub fn update_history(id: i32) {
+pub fn update_history(idi: i32) {
     use schema::history::dsl::*;
 
     let conn = &mut establish_connection();
 
-    diesel::update(history.find(id))
+    diesel::update(history.find(idi))
         .set(synced.eq(true))
         .execute(conn)
         .unwrap();

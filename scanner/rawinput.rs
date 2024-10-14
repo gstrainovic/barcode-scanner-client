@@ -39,6 +39,7 @@ unsafe fn next_raw_input_block(array_ptr: &mut *mut u8) {
     (*array_ptr) = transmute(array_int);
 }
 
+#[allow(invalid_value)]
 fn read_input_buffer(event_queue: &mut VecDeque<RawEvent>, devices: &mut Devices) {
     unsafe {
         let mut array_alloc: [u8; 16000] = MaybeUninit::uninit().assume_init();
@@ -100,6 +101,7 @@ pub fn get_joystick_state(devices: &Devices, id: usize) -> Option<JoystickState>
 }
 
 /// Produces a Device struct containing ID's to all available raw input Devices
+#[allow(invalid_value)]
 pub fn produce_raw_device_list(incl_360_devices: bool) -> Devices {
     let mut device_list = Devices::new();
     unsafe {
@@ -179,6 +181,7 @@ pub fn produce_raw_device_list(incl_360_devices: bool) -> Devices {
     device_list
 }
 
+#[allow(invalid_value)]
 pub unsafe fn raw_handle_to_name(device_handle: HANDLE) -> String {
     let mut name_buffer: [u16; 1024] = MaybeUninit::uninit().assume_init();
     let mut name_buffer_size: UINT = 1024;
@@ -220,6 +223,7 @@ pub unsafe fn raw_name_to_hid(name: String) -> Result<HANDLE, String> {
     }
 }
 
+#[allow(invalid_value)]
 pub unsafe fn get_device_info(
     handle: HANDLE,
     name: String,

@@ -3,7 +3,7 @@ use fltk::{
     prelude::{BrowserExt, InputExt, WidgetExt},
 };
 use notify_rust::Notification;
-use req::get_settings::Einstellungen;
+// use req::get_settings::Einstellungen;
 use req::{
     check_duplicate_barcode::is_barcode_duplicate, get_ausnahmen::get_ausnahmen,
     get_leitcodes::get_leitcodes, get_leitcodes::IdAtrBuchstaben, get_leitcodes::Leitcode,
@@ -11,7 +11,7 @@ use req::{
 };
 use sqlite::{
     create_history, get_ausnahmen as get_ausnahmen_sqlite, get_leitcodes_sql,
-    get_settings as get_settings_sqlite, update_ausnahmen, update_leitcodes, update_settings, is_barcode_duplicate_sqlite
+    get_settings as get_settings_sqlite, update_leitcodes, is_barcode_duplicate_sqlite
 };
 
 use crate::{errors, send_barcode::send_barcode, ERROR_STATUS};
@@ -62,33 +62,44 @@ pub fn process_barcode(
         .collect::<String>()
         .to_lowercase();
 
-    let mut settings = Einstellungen {
-        Barcode_Mindestlaenge: 0,
-        Leitcodes_Aktiv: false,
-        Ausnahmen_Aktiv: false,
-    };
+    // let mut settings = Einstellungen {
+    //     Barcode_Mindestlaenge: 0,
+    //     Leitcodes_Aktiv: false,
+    //     Ausnahmen_Aktiv: false,
+    // };
 
     let offline = jwt.is_empty();
 
-    if offline {
-        settings = get_settings_sqlite()
+    // if offline {
+    //     settings = get_settings_sqlite()
+    // } else {
+    //     settings = get_settings(&jwt).unwrap().data.attributes;
+    //     update_settings(get_settings(&jwt).unwrap().data.attributes);
+    // }
+
+    let settings = if offline {
+        get_settings_sqlite()
     } else {
-        settings = get_settings(&jwt).unwrap().data.attributes;
-        update_settings(get_settings(&jwt).unwrap().data.attributes);
-    }
+        get_settings(&jwt).unwrap().data.attributes
+    };
 
     // printn the settings
     // println!("settings: {:?}", settings);
 
     if settings.Ausnahmen_Aktiv {
-        let mut ausnahmen = Vec::new();
+        // let mut ausnahmen = Vec::new();
 
-        if offline {
-            ausnahmen = get_ausnahmen_sqlite();
+        let ausnahmen = if offline {
+            get_ausnahmen_sqlite()
         } else {
-            ausnahmen = get_ausnahmen(&jwt).unwrap();
-            update_ausnahmen(get_ausnahmen(&jwt).unwrap());
-        }
+            get_ausnahmen(&jwt).unwrap()
+        };
+        // if offline {
+        //     ausnahmen = get_ausnahmen_sqlite();
+        // } else {
+        //     ausnahmen = get_ausnahmen(&jwt).unwrap();
+        //     update_ausnahmen(get_ausnahmen(&jwt).unwrap());
+        // }
 
         // if barcode ends with a string from barcode_ausnahmen, then send it directly to server
         for barcode_ausnahme in ausnahmen {
@@ -132,14 +143,19 @@ pub fn process_barcode(
         // ¨C140327628203`99000900033018
         // 0327642113+99..
 
-        let mut leitcodes = Vec::new();
+        // let mut leitcodes = Vec::new();
 
-        if jwt.is_empty() {
-            leitcodes = get_leitcodes_sql();
+        let leitcodes = if jwt.is_empty() {
+            get_leitcodes_sql()
         } else {
-            leitcodes = get_leitcodes(&jwt).unwrap().data;
             update_leitcodes(get_leitcodes(&jwt).unwrap());
-        }
+            get_leitcodes(&jwt).unwrap().data
+        };
+        // if jwt.is_empty() {
+        //     leitcodes = get_leitcodes_sql();
+        // } else {
+        //     leitcodes = get_leitcodes(&jwt).unwrap().data;
+        // }
 
         // println!("leitcodes: {:?}", leitcodes);
 
@@ -181,13 +197,18 @@ pub fn process_barcode(
         }
     }
 
-    let mut is_barcode_duplicate_bool = false;
+    // let mut is_barcode_duplicate_bool = false;
+    // if offline {
+    //     is_barcode_duplicate_bool = is_barcode_duplicate_sqlite(&barcode_new);
+    // } else {
+    //     is_barcode_duplicate_bool = is_barcode_duplicate(&jwt, &barcode_new, &user_id).unwrap();
+    // }
 
-    if offline {
-        is_barcode_duplicate_bool = is_barcode_duplicate_sqlite(&barcode_new);
+    let is_barcode_duplicate_bool = if offline {
+        is_barcode_duplicate_sqlite(&barcode_new)
     } else {
-        is_barcode_duplicate_bool = is_barcode_duplicate(&jwt, &barcode_new, &user_id).unwrap();
-    }
+        is_barcode_duplicate(&jwt, &barcode_new, &user_id).unwrap()
+    };
 
     if !is_barcode_duplicate_bool {
         send_barcode(barcode_new.clone(), user_id, &jwt, lager_user_ids);

@@ -82,6 +82,7 @@ fn main() {
         rolle_output.clone(),
         barcode_input.clone(),
         device_choice,
+        win.clone(),
     );
     group2(
         wizard.clone(),

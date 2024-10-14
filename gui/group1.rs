@@ -164,7 +164,8 @@ pub fn group1(
 
         let inp_c = barcode_input.clone();
         let chce_c = device_choice.clone();
-        std::thread::spawn(|| looper(inp_c, chce_c));
+        let rol_c = rolle.clone();
+        std::thread::spawn(|| looper(inp_c, chce_c, rol_c));
 
         if offline {
             if rolle == "Lager" {

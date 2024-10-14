@@ -1,14 +1,14 @@
 use fltk::{
     input,
     menu::Choice,
-    prelude::{MenuExt, WidgetExt},
+    prelude::{InputExt, MenuExt, WidgetExt},
 };
 use scanner::{DeviceType, KeyId, RawEvent, RawInputManager, State};
 use std::sync::Arc;
 
 use crate::{errors::Status, ERROR_STATUS};
 
-pub fn looper(mut inp: input::Input, chce: Choice) {
+pub fn looper(mut inp: input::Input, chce: Choice, rolle: String) {
     let mut switch_back_hwd = unsafe { winapi::um::winuser::GetForegroundWindow() };
 
     let mut manager = RawInputManager::new().unwrap();
@@ -52,13 +52,15 @@ pub fn looper(mut inp: input::Input, chce: Choice) {
                     // activate the window current_active_window_hwnd again
                         match ERROR_STATUS {
                             Status::Ok => {
-                                winapi::um::winuser::ShowWindow(
-                                    my_windows_hwnd,
-                                    winapi::um::winuser::SW_MINIMIZE,
-                                );
-                                winapi::um::winuser::SetForegroundWindow(switch_back_hwd);
-                                winapi::um::winuser::SetActiveWindow(switch_back_hwd);
-                                winapi::um::winuser::SetFocus(switch_back_hwd);
+                                if rolle == "Produktion" {
+                                    winapi::um::winuser::ShowWindow(
+                                        my_windows_hwnd,
+                                        winapi::um::winuser::SW_MINIMIZE,
+                                    );
+                                    winapi::um::winuser::SetForegroundWindow(switch_back_hwd);
+                                    winapi::um::winuser::SetActiveWindow(switch_back_hwd);
+                                    winapi::um::winuser::SetFocus(switch_back_hwd);
+                                }
                             }
                             _ => {}
                         }

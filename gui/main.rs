@@ -40,7 +40,7 @@ fn main() {
       }));
 
     hide_console_window();
-    update().unwrap();
+    update();
 
     // globals
     let mitarbeiter1_output = output::Output::default().with_label("Mitarbeiter 1");
@@ -82,7 +82,6 @@ fn main() {
         rolle_output.clone(),
         barcode_input.clone(),
         device_choice,
-        win.clone(),
     );
     group2(
         wizard.clone(),

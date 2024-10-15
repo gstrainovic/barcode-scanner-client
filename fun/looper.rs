@@ -7,8 +7,11 @@ use scanner::{DeviceType, KeyId, RawEvent, RawInputManager, State};
 use std::sync::Arc;
 
 use crate::{errors::Status, ERROR_STATUS};
+use crate::sync::sync;
 
-pub fn looper(mut inp: input::Input, chce: Choice, rolle: String) {
+pub fn looper(mut inp: input::Input, chce: Choice, rolle: String, jwt: String) {
+    sync(jwt); // einmalig synchronisieren von sqlite
+
     let mut switch_back_hwd = unsafe { winapi::um::winuser::GetForegroundWindow() };
 
     let mut manager = RawInputManager::new().unwrap();

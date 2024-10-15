@@ -1,5 +1,4 @@
 use fltk::{
-    app::screen_size,
     dialog, image,
     prelude::{GroupExt, WidgetExt, WindowExt},
     window::{self, Window},

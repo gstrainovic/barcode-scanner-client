@@ -28,8 +28,9 @@ fn start_looper(barcode_input: fltk::input::Input, device_choice: fltk::menu::Ch
         let inp_c = barcode_input.clone();
         let chce_c = device_choice.clone();
         let rol_c = rolle.clone();
+        let jwt_c = unsafe { GJWT.clone() };
         std::thread::spawn(move || {
-            looper(inp_c, chce_c, rol_c);
+            looper(inp_c, chce_c, rol_c, jwt_c);
             LOOPER_RUNNING.store(false, Ordering::SeqCst); // Setzen Sie den Status zurück, wenn der Thread beendet ist
         });
     } else {
@@ -48,7 +49,6 @@ pub fn group1(
     mut rolle_output: fltk::output::Output,
     barcode_input: fltk::input::Input,
     device_choice: fltk::menu::Choice,
-    mut win: fltk::window::Window,
 ) -> () {
     let grp1 = group::Group::default().size_of(&wizard);
     let mut grid = logo_and_version();
@@ -93,13 +93,6 @@ pub fn group1(
                         
                         unsafe { GJWT = jwt.unwrap() };
                         let gjwt = unsafe { GJWT.clone() };
-                        // std::thread::spawn(|| {
-                            let jwt = unsafe { GJWT.clone() };
-                            // println!("start sync");
-                            fun::sync::sync(jwt);
-                            // println!("end sync");
-                        // });
-
                         rolle = user.as_ref().unwrap().rolle.clone();
 
                         let users = get_users(gjwt.clone()).unwrap();

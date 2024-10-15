@@ -106,6 +106,7 @@ fn main() {
     win.end();
     win.show();
     win.activate();
+    win.maximize();
 
     unsafe {
         winapi::um::winuser::ShowWindow(hwnd_of_barcode_scanner, winapi::um::winuser::SW_MAXIMIZE);

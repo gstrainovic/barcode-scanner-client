@@ -3,7 +3,7 @@
 use crate::{logo_and_version::logo_and_version, GJWT, USER_ID};
 use fltk::{
     button, dialog, enums, frame, group, input,
-    prelude::{GroupExt, InputExt, MenuExt, WidgetExt, WindowExt},
+    prelude::{GroupExt, InputExt, MenuExt, WidgetExt},
 };
 use fun::{looper::looper, username_camelcase::username_camelcase};
 use notify_rust::Notification;
@@ -192,13 +192,10 @@ pub fn group1(
 
         if offline {
             if rolle == "Lager" {
-                // println!("Lager mit offline");
-                win.fullscreen(true);
                 wizard.next();
                 return;
             } else {
                 start_looper(barcode_input.clone(), device_choice.clone(), rolle.clone());
-                win.fullscreen(false);
                 mitarbeiter1_output.set_value("");
                 mitarbeiter2_output.set_value("");
                 mitarbeiter1_output.hide();
@@ -210,13 +207,10 @@ pub fn group1(
         }
 
         if rolle == "Lager" {
-            // println!("Lager ohne offline");
-            win.fullscreen(true);
             wizard.next();
             return;
         } else {
             start_looper(barcode_input.clone(), device_choice.clone(), rolle);
-            win.fullscreen(false);
             wizard.next();
             wizard.next();
             return;

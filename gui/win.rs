@@ -2,16 +2,17 @@ use fltk::{
     app::screen_size,
     dialog, image,
     prelude::{GroupExt, WidgetExt, WindowExt},
-    window,
+    window::{self, Window},
+    app
 };
 use notify_rust::Notification;
 use crate::favicon::FAVICON;
 
 pub fn win() -> window::Window {
-    let w = screen_size().0 as i32;
-    let h = screen_size().1 as i32;
-
-    let mut win = window::Window::default().with_size(w, h);
+    let (screen_width, screen_height) = app::screen_size();
+    let mut win = Window::default()
+        .with_size(screen_width as i32, (screen_height) as i32);
+    
     win.set_label("BarcodeScanner");
     win.set_callback(|w| {
         let choice = dialog::choice2_default("Barcodescanner beenden?", "Nein", "Ja", "Abbruch");

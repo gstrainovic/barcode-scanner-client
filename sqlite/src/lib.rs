@@ -93,7 +93,7 @@ pub fn load_history() -> Vec<History> {
 
     history::table
         .order(history::id.asc())
-        .limit(1000)
+        .limit(500)
         .load::<History>(conn)
         .unwrap_or_else(|error| {
             eprintln!("Error loading history: {}", error);

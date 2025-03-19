@@ -18,6 +18,7 @@ pub struct Leitcode {
     pub Beschreibung: String,
     pub Mindeslaenge: i32,
     pub Leitcode_Buchstabe: DataBuchstaben,
+    pub Produktion: bool,
 }
 #[derive(Deserialize, Debug)]
 pub struct DataBuchstaben {

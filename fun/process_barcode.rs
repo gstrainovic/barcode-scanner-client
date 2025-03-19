@@ -57,13 +57,12 @@ pub fn process_barcode(
     jwt: String,
     lager_user_ids: &Vec<i32>,
     history: fltk::browser::HoldBrowser,
+    rolle: &str,
 ) {
     i.activate();
     let mut barcode_new = i.value();
     // let barcode_c = barcode.clone();
     i.set_value("");
-
-
 
     // let mut settings = Einstellungen {
     //     Barcode_Mindestlaenge: 0,
@@ -163,21 +162,22 @@ pub fn process_barcode(
         // } else {
         //     leitcodes = get_leitcodes(&jwt).unwrap().data;
         // }
-
-        // println!("leitcodes: {:?}", leitcodes);
-
         for idatr in leitcodes {
             let attribute: Leitcode = idatr.attributes;
+
+            // Leitcodes welche nicht dem aktuellem Arbeitsplatz zugeordnet sind, werden ignoriert
+            if attribute.Produktion && rolle != "Produktion" {
+                continue;
+            }
+            
             if barcode_new.len() > attribute.Mindeslaenge as usize {
                 let beschreibung = attribute.Beschreibung;
                 let data_buchstaben: Vec<IdAtrBuchstaben> = attribute.Leitcode_Buchstabe.data;
-
                 let anzahl_buchstaben = data_buchstaben.len();
                 let mut gefunden = 0;
                 for buchstabe_atr_id in data_buchstaben {
                     let buchstabe_attr: LeitcodeBuchstabe = buchstabe_atr_id.attributes;
                     let position: usize = buchstabe_attr.Position_Null_Beginnend as usize;
-
                     // does the barcode match witch buchstabe at position?
                     if barcode_new.len() > position {
                         let barcode_buchstabe = barcode_new.chars().nth(position).unwrap();

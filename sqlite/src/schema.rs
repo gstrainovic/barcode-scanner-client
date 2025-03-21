@@ -44,6 +44,7 @@ diesel::table! {
         beschreibung -> Text,
         mindeslaenge -> Integer,
         leitcode_buchstabe -> Text,
+        produktion -> Bool,
     }
 }
 

@@ -73,6 +73,7 @@ pub struct LeitcodesTemp {
     pub id: i16,
     pub beschreibung: String,
     pub mindeslaenge: i32,
+    pub produktion: bool,
     pub leitcode_buchstabe: Vec<LeitcodeBuchstabe>,
 }
 
@@ -82,6 +83,7 @@ pub struct Leitcodes {
     pub beschreibung: String,
     pub mindeslaenge: i32,
     pub leitcode_buchstabe: String,
+    pub produktion: bool,
 }
 #[derive(Insertable)]
 #[diesel(table_name = leitcodes)]
@@ -89,6 +91,7 @@ pub struct NewLeitcodes<'a> {
     pub beschreibung: &'a str,
     pub mindeslaenge: &'a i32,
     pub leitcode_buchstabe: &'a str,
+    pub produktion: &'a bool,
 }
 
 

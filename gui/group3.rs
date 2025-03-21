@@ -1,4 +1,4 @@
-use fltk::{group, button, output, input, prelude::{WidgetExt, GroupExt, BrowserExt}, browser::{HoldBrowser, Browser}};
+use fltk::{browser::{Browser, HoldBrowser}, button, group, input, output, prelude::{BrowserExt, GroupExt, InputExt, WidgetExt}};
 use fun::process_barcode::process_barcode;
 use sqlite::load_history;
 use crate::{logo_and_version, LAGER_USER_IDS, GJWT, USER_ID};
@@ -75,7 +75,7 @@ pub fn group3(
     senden_button.set_callback(move |_| {
         let rolle = rolle_output.value();
         unsafe {
-            process_barcode(&mut barcode_input, USER_ID.clone(), GJWT.clone(), &LAGER_USER_IDS, history_browser.clone(), rolle);
+            process_barcode(&mut barcode_input, USER_ID.clone(), GJWT.clone(), &LAGER_USER_IDS, history_browser.clone(), &rolle);
         }
 
     });

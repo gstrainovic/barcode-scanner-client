@@ -270,6 +270,7 @@ pub fn update_leitcodes(leitcodes_req_data: reqLeitcodeData) {
             id: id_atr.id,
             beschreibung: attributes.Beschreibung,
             mindeslaenge: attributes.Mindeslaenge,
+            produktion: attributes.Produktion,
             leitcode_buchstabe: attributes.Leitcode_Buchstabe.data.into_iter().map(|buchstabe| {
                 models::LeitcodeBuchstabe {
                     id: buchstabe.id,
@@ -288,6 +289,7 @@ pub fn update_leitcodes(leitcodes_req_data: reqLeitcodeData) {
         let new_leitcode = models::NewLeitcodes {
             beschreibung: &new_leitcode_temp.beschreibung,
             mindeslaenge: &new_leitcode_temp.mindeslaenge,
+            produktion: &new_leitcode_temp.produktion,
             leitcode_buchstabe: &leitcode_buchstabe_str,
         };
 
@@ -339,6 +341,7 @@ pub fn get_leitcodes_sql() -> Vec<IdAtr> {
         let leitcode = reqLeitcodes {
             Beschreibung: leitcode.beschreibung,
             Mindeslaenge: leitcode.mindeslaenge,
+            Produktion: leitcode.produktion,
             Leitcode_Buchstabe: DataBuchstaben {
                 data: id_atr_buchstaben,
             },

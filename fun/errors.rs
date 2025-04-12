@@ -46,7 +46,7 @@ pub fn leitcode(x : String) -> Error {
 
 pub fn bereits_gesendet() -> Error {
     Error {
-        message: "@C88Bereits gesendet".to_string(),
+        message: "@C88Doppelt".to_string(),
         status: Status::Error,
         error_type: Type::BereitsGesendet,
     }
@@ -62,7 +62,7 @@ pub fn ok() -> Error {
 
 pub fn no_numbers() -> Error {
     Error {
-        message: "@C03Barcode seltsam".to_string(),
+        message: "@C03Seltsamer Barcode".to_string(),
         status: Status::Warn,
         error_type: Type::KeineNummern,
     }

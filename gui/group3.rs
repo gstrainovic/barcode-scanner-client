@@ -36,7 +36,7 @@ pub fn group3(
 
     let mut header = Browser::default();
     header.add("Status\tBarcode\tZeitstempel");
-    header.set_column_widths([120, 500, 150].as_ref());
+    header.set_column_widths([130, 480, 150].as_ref());
     header.set_column_char('\t');
 
     let right_side_columns = 15;
@@ -48,7 +48,7 @@ pub fn group3(
 
     // let screen_height = fltk::app::screen_size().1; // Bildschirmhöhe
     // let font_size = (screen_height / 50.0) as i32; // Dynamische Berechnung der Schriftgröße
-    history_browser.set_text_size(32);
+    history_browser.set_text_size(30);
 
     grid.insert_ext(&mut history_browser, 8, right_offset, right_side_columns, 10);
 

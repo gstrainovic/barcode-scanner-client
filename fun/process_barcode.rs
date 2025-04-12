@@ -246,14 +246,15 @@ pub fn process_barcode(
     //     is_barcode_duplicate_bool = is_barcode_duplicate(&jwt, &barcode_new, &user_id).unwrap();
     // }
 
+    let cleaned_barcode = clean_barcode(&barcode_new);
+    
     let is_barcode_duplicate_bool = if offline {
-        is_barcode_duplicate_sqlite(&barcode_new)
+        is_barcode_duplicate_sqlite(&cleaned_barcode)
     } else {
-        is_barcode_duplicate(&jwt, &barcode_new, &user_id).unwrap()
+        is_barcode_duplicate(&jwt, &cleaned_barcode, &user_id).unwrap()
     };
 
     if !is_barcode_duplicate_bool {
-        let cleaned_barcode = clean_barcode(&barcode_new);
         send_barcode(cleaned_barcode.clone(), user_id, &jwt, lager_user_ids);
 
         // does the barcode contain a number?
